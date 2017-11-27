@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(ydlidar)
 
+add_definitions(-std=c++11) # Use C++11
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -122,6 +123,8 @@ include_directories(
 #   src/${PROJECT_NAME}/ydlidar.cpp
 # )
 
+#add_definitions(-ldl)
+
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -146,7 +149,7 @@ target_link_libraries(ydlidar_node
    ${catkin_LIBRARIES}
  )
 target_link_libraries(ydlidar_client
-   ${catkin_LIBRARIES}
+   ${catkin_LIBRARIES} 
  )
 
 #############

@@ -1,4 +1,6 @@
 #include "ydlidar.h"
+#include "event.h"
+#include "locker.h"
 
 static int serial_fd;
 static pthread_t threadId;
@@ -7,38 +9,37 @@ size_t required_rx_cnt;
 u_int32_t _baudrate;
 bool isSupportMotorCtrl=true;
 
+Ydlidar* Ydlidar::_impl = NULL;
+
 Ydlidar::Ydlidar()
 {
     isConnected = false;
     isScanning = false;
     isThreadOn = false;
-    pthread_mutex_init(&_lock, NULL);
 }
 
 Ydlidar::~Ydlidar()
 {
-    disconnect();
-}
+    {
+	ScopedLocker l(_scanning_lock);
+    	isScanning = false;
+    }
 
-Ydlidar * Ydlidar::initDriver()
-{
-    return new Ydlidar();
-}
-
-void Ydlidar::DestroyDriver(Ydlidar * drv)
-{
-    delete drv;
+    if(isThreadOn||threadId){
+        if(threadId)
+            pthread_join(threadId , NULL);
+    }
 }
 
 int Ydlidar::connect(const char * port_path, u_int32_t baudrate)
 {
     _baudrate = baudrate;
     if (isConnected){
-        //return 1;
         close(serial_fd);
     }
 
     {
+        ScopedLocker l(_lock);
         if (serial_fd != -1) {
             close(serial_fd);
         }
@@ -78,9 +79,10 @@ int Ydlidar::connect(const char * port_path, u_int32_t baudrate)
 
     //clear the DTR bit to let the motor spin
     clearDTR();
-
+    
     return serial_fd;
 }
+
 
 void Ydlidar::setDTR()
 {
@@ -89,7 +91,12 @@ void Ydlidar::setDTR()
     }
 
     u_int32_t dtr_bit = TIOCM_DTR;
-    ioctl(serial_fd,TIOCMBIS,&dtr_bit);
+    if(-1==ioctl(serial_fd,TIOCMBIS,&dtr_bit)){
+	stringstream ss;
+        ss << "setDTR failed on a call to ioctl(TIOCMBIS): " << errno << " " << strerror(errno);
+        throw(SerialException(ss.str().c_str()));
+     }
+	
 }
 
 void Ydlidar::clearDTR()
@@ -99,11 +106,16 @@ void Ydlidar::clearDTR()
     }
 
     u_int32_t dtr_bit = TIOCM_DTR;
-    ioctl(serial_fd,TIOCMBIC,&dtr_bit);
+    if(-1==ioctl(serial_fd,TIOCMBIC,&dtr_bit)){
+	stringstream ss;
+        ss << "clearDTR failed on a call to ioctl(TIOCMBIC): " << errno << " " << strerror(errno);
+        throw(SerialException(ss.str().c_str()));
+     }
 }
 
 int Ydlidar::startMotor()
 {
+    ScopedLocker l(_lock);
     if(isSupportMotorCtrl){
         setDTR();
         usleep(500);
@@ -117,6 +129,7 @@ int Ydlidar::startMotor()
 
 int Ydlidar::stopMotor()
 {
+    ScopedLocker l(_lock);
     if(isSupportMotorCtrl){
         clearDTR();
         usleep(500);
@@ -135,19 +148,30 @@ void Ydlidar::disconnect()
     }
     stop();
     if (serial_fd != -1) {
-        close(serial_fd);
+	int ret;
+        ret = close(serial_fd);
+	if(ret == 0){
+	    serial_fd = -1;
+	}else{
+	    THROW (IOException, errno);
+	}
     }
-    isConnected = false;
     serial_fd = -1;
+    isConnected = false;
 }
 
 
 void Ydlidar::disableDataGrabbing()
 {
-    isScanning = false;
+    {
+	ScopedLocker l(_scanning_lock);
+    	isScanning = false;
+    }
 
     if(isThreadOn){
-        pthread_join(threadId , NULL);
+	if(threadId){
+            pthread_join(threadId , NULL);
+	}
     }
 }
 
@@ -302,6 +326,7 @@ int Ydlidar::waitForData(size_t data_count, u_int32_t timeout, size_t * returned
 
     if ( isConnected ){
         if ( ioctl(serial_fd, FIONREAD, returned_size) == -1) {
+	    THROW (IOException, errno);
             return -2;
         }
         if (*returned_size >= data_count){
@@ -312,12 +337,19 @@ int Ydlidar::waitForData(size_t data_count, u_int32_t timeout, size_t * returned
     while (isConnected) {
         int n = select(max_fd, &input_set, NULL, NULL, &timeout_val);
         if (n < 0){
-            return -2;
+	    // Select was interrupted
+    	   if (errno == EINTR) {
+     	       return -1;
+    	   }
+    	   // Otherwise there was some error
+    	   THROW (IOException, errno);
+           return -2;
         }else if (n == 0)  {
-            return -1;
+           return -1;//timeout
         } else {
             assert (FD_ISSET(serial_fd, &input_set));
             if ( ioctl(serial_fd, FIONREAD, returned_size) == -1) {
+	        THROW (IOException, errno);
                 return -2;
             }
 
@@ -332,6 +364,7 @@ int Ydlidar::waitForData(size_t data_count, u_int32_t timeout, size_t * returned
             }
         }
     }
+    THROW (IOException, errno);
     return -2;
 }
 
@@ -344,6 +377,7 @@ int Ydlidar::getHealth(device_health & health, u_int32_t timeout)
 
     disableDataGrabbing();
     {
+        ScopedLocker l(_lock);
         if ((ans = sendCommand(LIDAR_CMD_GET_DEVICE_HEALTH)) != 0) {
             return ans;
         }
@@ -379,6 +413,7 @@ int Ydlidar::getDeviceInfo(device_info & info, u_int32_t timeout)
 
     disableDataGrabbing();
     {
+        ScopedLocker l(_lock);
         if ((ans = sendCommand(LIDAR_CMD_GET_DEVICE_INFO)) != 0) {
             return ans;
         }
@@ -414,11 +449,11 @@ int Ydlidar::startScan(bool force, u_int32_t timeout )
         return 0;
     }
 
-    stop();
-
+    stop();    
     startMotor();
 
     {
+        ScopedLocker l(_lock);
         if ((ans = sendCommand(force?LIDAR_CMD_FORCE_SCAN:LIDAR_CMD_SCAN)) != 0) {
             return ans;
         }
@@ -435,10 +470,9 @@ int Ydlidar::startScan(bool force, u_int32_t timeout )
         if (response_header.size < sizeof(node_info)) {
             return -3;
         }
-
-       isScanning = true;
-       ans = this->createThread();
-       return ans;
+        isScanning = true;
+        ans = this->createThread();
+        return ans;
     }
     return 0;
 }
@@ -456,6 +490,7 @@ int Ydlidar::createThread()
         isThreadOn=false;
         return -2;
     }
+   
     isThreadOn=true;
     return 0;
 }
@@ -464,13 +499,19 @@ int Ydlidar::stop()
 {
     int ans;
     node_info  local_buf[128];
-    size_t         count = 128;
+    size_t     count = 128;
 
     disableDataGrabbing();
-    sendCommand(LIDAR_CMD_FORCE_STOP);
+    {
+	ScopedLocker l(_lock);
+	ans = sendCommand(LIDAR_CMD_FORCE_STOP);
+    	if(ans != 0)
+            return ans;
+    }
 
     stopMotor();
 
+    ScopedLocker l(_lock);
     while(true) {
         if ((ans = waitScanData(local_buf, count ,10)) != 0 ) {
             if (ans == -1) {
@@ -486,19 +527,24 @@ int Ydlidar::stop()
 
 int Ydlidar::cacheScanData()
 {
-    node_info      local_buf[128];
-    size_t              count = 128;
-    node_info      local_scan[MAX_SCAN_NODES];
-    size_t              scan_count = 0;
+    node_info    local_buf[128];
+    size_t       count = 128;
+    node_info    local_scan[MAX_SCAN_NODES];
+    size_t       scan_count = 0;
     int          ans;
     memset(local_scan, 0, sizeof(local_scan));
 
     waitScanData(local_buf, count);
 
     while(isScanning) {
+
         if ((ans=waitScanData(local_buf, count)) != 0) {
             if (ans != -1) {
-                isScanning = false;
+		fprintf(stderr, "exit scanning thread!!");
+                {
+		    ScopedLocker l(_scanning_lock);
+    		    isScanning = false;
+    		}
                 return -2;
             }
         }
@@ -506,18 +552,22 @@ int Ydlidar::cacheScanData()
         for (size_t pos = 0; pos < count; ++pos) {
             if (local_buf[pos].sync_quality & LIDAR_RESP_MEASUREMENT_SYNCBIT) {
                 if ((local_scan[0].sync_quality & LIDAR_RESP_MEASUREMENT_SYNCBIT)) {
-                    this->lock();
+		    _lock.lock();//timeout lock, wait resource copy 
                     memcpy(scan_node_buf, local_scan, scan_count*sizeof(node_info));
                     scan_node_count = scan_count;
-                    pthread_mutex_unlock(&_lock);
+		    _dataEvt.set();
+		    _lock.unlock();
                 }
                 scan_count = 0;
             }
             local_scan[scan_count++] = local_buf[pos];
-            if (scan_count == sizeof(local_scan)) scan_count-=1;
+            if (scan_count == _countof(local_scan)) scan_count-=1;
         }
     }
-    isScanning = false;
+    {
+	ScopedLocker l(_scanning_lock);
+    	isScanning = false;
+    }
     return 0;
 }
 
@@ -558,10 +608,8 @@ int Ydlidar::waitPackage(node_info * node, u_int32_t timeout)
             size_t remainSize = PackagePaidBytes - recvPos;
             size_t recvSize;
             int ans = waitForData(remainSize, timeout-waitTime, &recvSize);
-            if (ans == -2){
-                return -2;
-            }else if (ans == -1){
-                return -1;
+            if (ans == -2 || ans == -1){
+                return ans;
             }
 
             if (recvSize > remainSize) recvSize = remainSize;
@@ -572,32 +620,35 @@ int Ydlidar::waitPackage(node_info * node, u_int32_t timeout)
                 u_int8_t currentByte = recvBuffer[pos];
                 switch (recvPos) {
                 case 0:
-					if ( currentByte == (PH&0xFF) ) {
-					} else {
-						continue;
-					}
+		    if ( currentByte == (PH&0xFF) ) {
+
+		    } else {
+			continue;
+		    }
                     break;
                 case 1:
-					CheckSunCal = PH;
-					if ( currentByte == (PH>>8) ) {
-					} else {
-						recvPos = 0;
-						continue;
-					}
+		    CheckSunCal = PH;
+		    if ( currentByte == (PH>>8) ) {
+
+		    } else {
+		        recvPos = 0;
+			continue;
+		    }
                     break;
                 case 2:
-					SampleNumlAndCTCal = currentByte;
-					if ((currentByte == CT_Normal) || (currentByte == CT_RingStart)){
-					} else {
-						recvPos = 0;
-						continue;
-					}
+		    SampleNumlAndCTCal = currentByte;
+		    if ((currentByte == CT_Normal) || (currentByte == CT_RingStart)){
+
+		    } else {
+			recvPos = 0;
+			continue;
+		    }
                     break;
                 case 3:
                     SampleNumlAndCTCal += (currentByte*0x100);
                     package_Sample_Num = currentByte;
                     break;
-				case 4:
+		case 4:
                     if (currentByte & LIDAR_RESP_MEASUREMENT_CHECKBIT) {
                         FirstSampleAngle = currentByte;
                     } else {
@@ -607,7 +658,7 @@ int Ydlidar::waitPackage(node_info * node, u_int32_t timeout)
                     break;
                 case 5:
                     FirstSampleAngle += currentByte*0x100;
-	                CheckSunCal ^= FirstSampleAngle;
+	            CheckSunCal ^= FirstSampleAngle;
                     FirstSampleAngle = FirstSampleAngle>>1;
                     break;
                 case 6:
@@ -639,11 +690,11 @@ int Ydlidar::waitPackage(node_info * node, u_int32_t timeout)
                     }
                     break;
                 case 8:
-		            CheckSun = currentByte;	
-		            break;
-		        case 9:
-		            CheckSun += (currentByte*0x100);
-		            break;
+		    CheckSun = currentByte;	
+		    break;
+	        case 9:
+	            CheckSun += (currentByte*0x100);
+	            break;
                 }
                 packageBuffer[recvPos++] = currentByte;
             }
@@ -658,29 +709,29 @@ int Ydlidar::waitPackage(node_info * node, u_int32_t timeout)
             startTs = getms();
             recvPos = 0;
             while ((waitTime=getms() - startTs) <= timeout) {
-                 size_t remainSize = package_Sample_Num*PackageSampleBytes - recvPos;
-                 size_t recvSize;
-                 int ans =waitForData(remainSize, timeout-waitTime, &recvSize);
-                 if (ans == -2){
-                     return -2;
-                 }else if (ans == -1){
-                     return -1;
-                 }
-
-                 if (recvSize > remainSize) recvSize = remainSize;
-
-                 getData(recvBuffer, recvSize);
-
-                for (size_t pos = 0; pos < recvSize; ++pos) {
-                    if(recvPos%2 == 1){
-			            Valu8Tou16 += recvBuffer[pos]*0x100;
-			            CheckSunCal ^= Valu8Tou16;
-		            }else{
-			            Valu8Tou16 = recvBuffer[pos];	
-		            }
-                    packageBuffer[package_recvPos+recvPos] = recvBuffer[pos];
-                    recvPos++;
+                size_t remainSize = package_Sample_Num*PackageSampleBytes - recvPos;
+                size_t recvSize;
+                int ans =waitForData(remainSize, timeout-waitTime, &recvSize);
+                if (ans == -2){
+                    return -2;
+                }else if (ans == -1){
+                    return -1;
                 }
+
+                if (recvSize > remainSize) recvSize = remainSize;
+
+                getData(recvBuffer, recvSize);
+
+                for(size_t pos = 0; pos < recvSize; ++pos) {
+                     if(recvPos%2 == 1){
+	                 Valu8Tou16 += recvBuffer[pos]*0x100;
+	                 CheckSunCal ^= Valu8Tou16;
+	             }else{
+	                 Valu8Tou16 = recvBuffer[pos];	
+	             }
+                     packageBuffer[package_recvPos+recvPos] = recvBuffer[pos];
+                     recvPos++;
+                }        
                 if(package_Sample_Num*PackageSampleBytes == recvPos){
                     package_recvPos += recvPos;
                     break;
@@ -690,15 +741,15 @@ int Ydlidar::waitPackage(node_info * node, u_int32_t timeout)
                 return -1;
             }
         } else {
-              return -1;
+            return -1;
         }
         CheckSunCal ^= SampleNumlAndCTCal;
         CheckSunCal ^= LastSampleAngleCal;
 
         if(CheckSunCal != CheckSun){	
             CheckSunResult = false;
-	    }else{
-		    CheckSunResult = true;
+	}else{
+	    CheckSunResult = true;
         }
 
     }
@@ -726,9 +777,9 @@ int Ydlidar::waitPackage(node_info * node, u_int32_t timeout)
             } 
         }
     }else{
-	    (*node).sync_quality = Node_Default_Quality + Node_NotSync;
-	    (*node).angle_q6_checkbit = LIDAR_RESP_MEASUREMENT_CHECKBIT;
-	    (*node).distance_q2 = 0;
+        (*node).sync_quality = Node_Default_Quality + Node_NotSync;
+        (*node).angle_q6_checkbit = LIDAR_RESP_MEASUREMENT_CHECKBIT;
+        (*node).distance_q2 = 0;
     }
 
     package_Sample_Index++;
@@ -745,9 +796,9 @@ int Ydlidar::waitScanData(node_info * nodebuffer, size_t & count, u_int32_t time
         return -2;
     }
 
-    size_t   recvNodeCount =  0;
-    u_int32_t     startTs = getms();
-    u_int32_t     waitTime;
+    size_t     recvNodeCount =  0;
+    u_int32_t  startTs = getms();
+    u_int32_t  waitTime;
     int ans;
 
     while ((waitTime = getms() - startTs) <= timeout && recvNodeCount < count) {
@@ -765,18 +816,31 @@ int Ydlidar::waitScanData(node_info * nodebuffer, size_t & count, u_int32_t time
     return -1;
 }
 
-int Ydlidar::grabScanData(node_info * nodebuffer, size_t & count)
+
+int Ydlidar::grabScanData(node_info * nodebuffer, size_t & count, u_int32_t timeout)
 {
+    switch (_dataEvt.wait(timeout))
     {
-        if(scan_node_count == 0) {
-            return -2;
-        }
-        size_t size_to_copy = min(count, scan_node_count);
-        memcpy(nodebuffer, scan_node_buf, size_to_copy*sizeof(node_info));
-        count = size_to_copy;
-        scan_node_count = 0;
+	case Event::EVENT_TIMEOUT:
+            count = 0;
+       	    return -2;
+	case Event::EVENT_OK:
+	    {
+        	if(scan_node_count == 0) {
+           	    return -2;
+                }
+        	size_t size_to_copy = min(count, scan_node_count);
+		ScopedLocker l(_lock);
+        	memcpy(nodebuffer, scan_node_buf, size_to_copy*sizeof(node_info));
+        	count = size_to_copy;
+        	scan_node_count = 0;
+	    }
+	    return 0;
+	default:
+            count = 0;
+            return -1;
     }
-    return 0;
+
 }
 
 void Ydlidar::simpleScanData(std::vector<scanDot> *scan_data , node_info *buffer, size_t count)
@@ -794,7 +858,7 @@ void Ydlidar::simpleScanData(std::vector<scanDot> *scan_data , node_info *buffer
 
 int Ydlidar::ascendScanData(node_info * nodebuffer, size_t count)
 {
-    float inc_origin_angle = 360.0/count;
+    float     inc_origin_angle = 360.0/count;
     node_info *tmpbuffer = new node_info[count];
     int i = 0;
 
@@ -860,44 +924,9 @@ int Ydlidar::ascendScanData(node_info * nodebuffer, size_t count)
     }
 
     memcpy(nodebuffer, tmpbuffer, count*sizeof(node_info));
-    delete tmpbuffer;
+    delete[] tmpbuffer;
 
     return 0;
 }
-
-int  Ydlidar::lock(unsigned long timeout)
-{
-    if (timeout == 0xFFFFFFFF){
-        if (pthread_mutex_lock(&_lock) == 0) return 1;
-    } else if (timeout == 0) {
-        if (pthread_mutex_trylock(&_lock) == 0) return 1;
-    } else {
-        struct timespec wait_time;
-        timeval now;
-        gettimeofday(&now,NULL);
-
-        wait_time.tv_sec = timeout/1000 + now.tv_sec;
-        wait_time.tv_nsec = (timeout%1000)*1000000 + now.tv_usec*1000;
-
-        if (wait_time.tv_nsec >= 1000000000) {
-           ++wait_time.tv_sec;
-           wait_time.tv_nsec -= 1000000000;
-        }
-        switch (pthread_mutex_timedlock(&_lock,&wait_time)) {
-        case 0:
-            return 1;
-        case ETIMEDOUT:
-            return -1;
-        }
-    }
-    return 0;
-}
-
-void Ydlidar::releaseThreadLock()
-{
-    pthread_mutex_unlock(&_lock);
-    pthread_mutex_destroy(&_lock);
-}
-
 
 

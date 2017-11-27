@@ -12,9 +12,14 @@
 
 #define RAD2DEG(x) ((x)*180./M_PI)
 
+int round_double(double number)
+{
+    return (number > 0.0) ? (number + 0.5) : (number - 0.5); 
+}
+
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
 {
-    int count = scan->scan_time / scan->time_increment;
+    int count = round_double(scan->scan_time / scan->time_increment);
     ROS_INFO("[EAI INFO]: I heard a laser scan %s[%d]:", scan->header.frame_id.c_str(), count);
     ROS_INFO("[EAI INFO]: angle_range, %f, %f", RAD2DEG(scan->angle_min), RAD2DEG(scan->angle_max));
   

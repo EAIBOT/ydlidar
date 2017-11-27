@@ -1,4 +1,4 @@
-YDLIDAR ROS PACKAGE V1.1.0
+YDLIDAR ROS PACKAGE V1.1.1
 =====================================================================
 
 ROS node and test application for YDLIDAR
@@ -49,3 +49,12 @@ UPDATE LOG
 2) Repair the problem of open the serial port for many times.
 
 3) Add multithreaded tag.
+
+--20171127 v1.1.1 
+
+1) Repair the problem of array bounds.
+
+2) Add try catch exception.
+
+
+
