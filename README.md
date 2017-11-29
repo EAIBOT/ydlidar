@@ -1,4 +1,4 @@
-YDLIDAR ROS PACKAGE V1.1.1
+YDLIDAR ROS PACKAGE V1.1.2
 =====================================================================
 
 ROS node and test application for YDLIDAR
@@ -55,6 +55,11 @@ UPDATE LOG
 1) Repair the problem of array bounds.
 
 2) Add try catch exception.
+
+--20171129 v1.1.2 
+
+1) Repair the options of serial port.
+
 
 
 

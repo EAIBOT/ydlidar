@@ -50,29 +50,55 @@ int Ydlidar::connect(const char * port_path, u_int32_t baudrate)
             return -1;
         }
 
-        struct termios2 options;
-
-	if((ioctl(serial_fd,TCGETS2,&options))<0){
+        struct termios2 options, oldopt;
+	if((ioctl(serial_fd,TCGETS2,&oldopt))<0){
             printf("[EAI ERROR]: error to get the termios2 , %s\n",strerror(errno));
             return -1;
         }
-        options.c_cflag &= ~CBAUD;
-        options.c_cflag |= BOTHER;
-        options.c_cflag |= (CLOCAL|CREAD|CS8|CRTSCTS);
-        options.c_cflag &= ~CSTOPB;
-        options.c_cflag &= ~CRTSCTS;
-        options.c_cflag &= ~PARENB;
-        options.c_cc[VMIN] = 0;
-        options.c_cc[VTIME] = 0;
-        options.c_lflag = 0;
-        options.c_iflag = IGNPAR|ICRNL;
-        options.c_oflag = 0;
+        bzero(&options,sizeof(struct termios2));
         options.c_ispeed =baudrate;
         options.c_ospeed =baudrate;
+        options.c_cflag = BOTHER;
+        options.c_cflag |= (CLOCAL | CREAD);
+        options.c_cflag &= ~PARENB;
+        options.c_cflag &= ~CSTOPB;
+        options.c_cflag &= ~CSIZE;
+        options.c_cflag |= CS8;
+        options.c_iflag &= ~(IXON | IXOFF | IXANY);
+        options.c_iflag &= ~(INLCR | IGNCR | ICRNL | IGNBRK);
+        options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+        options.c_oflag &= ~OPOST;
+
+        if(ioctl(serial_fd, TCFLSH, TCIFLUSH)!=0){
+            fprintf(stderr , "TCIFLUSH FAILED!!!!\n");
+        }
+
+        if (fcntl(serial_fd, F_SETFL, FNDELAY)) {
+            if (serial_fd != -1) {
+                close(serial_fd);
+            }
+            serial_fd = -1;
+            return -1;
+        }
+
+#if isDebug
+	printf("\nSet options\n");
+
+        printf("options.c_iflag  = 0X%8X\n", options.c_iflag );
+        printf("options.c_oflag  = 0X%8X\n", options.c_oflag );
+        printf("options.c_cflag  = 0X%8X\n", options.c_cflag );
+        printf("options.c_lflag  = 0X%8X\n", options.c_lflag );
+        printf("options.c_line  = 0X%8X\n", options.c_line );
+        for(int i = 0 ; i < sizeof(struct termios2)-25; i++)
+        {
+                printf("options.c_cc[%d]  = 0X%2X\n", i, options.c_cc[i] );
+        }
+#endif
 	if((ioctl(serial_fd,TCSETS2,&options))<0){
             printf("[EAI ERROR]: error to s the termios2 , %s\n",strerror(errno));
             return -1;
         }
+
     }
 
     isConnected = true;
@@ -510,18 +536,6 @@ int Ydlidar::stop()
     }
 
     stopMotor();
-
-    ScopedLocker l(_lock);
-    while(true) {
-        if ((ans = waitScanData(local_buf, count ,10)) != 0 ) {
-            if (ans == -1) {
-                break;
-            }
-        }else{
-            sendCommand(LIDAR_CMD_FORCE_STOP);
-        }
-    }
-    sendCommand(LIDAR_CMD_STOP);
     return 0;
 }
 
