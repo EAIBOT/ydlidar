@@ -37,6 +37,8 @@
 #include "event.h"
 #include "locker.h"
 
+#define isDebug 0
+
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
 
 #define THROW(exceptionClass, message) throw exceptionClass(__FILE__, \
@@ -145,7 +147,6 @@ public:
     static void done()
     {	
 	if(_impl){
-            //safe delete
 	    delete _impl;	
 	    _impl = NULL;
 	}

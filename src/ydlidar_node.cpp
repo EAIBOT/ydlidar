@@ -97,7 +97,7 @@ std::vector<int> split(const std::string &s, char delim) {
 static void Stop(int signo)   
 {  
     
-    printf("Received exit signal\n");
+    printf("[EAI INFO]:Received exit signal\n");
     flag = false;
     Ydlidar::singleton()->disconnect();
     Ydlidar::done(); 
@@ -117,6 +117,7 @@ int main(int argc, char * argv[]) {
 
     std::string list;
     std::vector<int> ignore_array;
+    const char * model;
 
     ros::NodeHandle nh;
     ros::Publisher scan_pub = nh.advertise<sensor_msgs::LaserScan>("scan", 1000);
@@ -131,18 +132,18 @@ int main(int argc, char * argv[]) {
 
     ignore_array = split(list ,',');
     if(ignore_array.size()%2){
-        ROS_ERROR_STREAM("ignore array is odd need be even");
+        ROS_ERROR_STREAM("[EAI ERROR]: Ignore array is odd need be even.");
     }
 
     for(unsigned int i =0 ; i < ignore_array.size();i++){
         if(ignore_array[i] < -180 && ignore_array[i] > 180){
-            ROS_ERROR_STREAM("ignore array should be -180<=  <=180");
+            ROS_ERROR_STREAM("[EAI ERROR]: Ignore array should be -180<=  <=180.");
         }
     }
 
     Ydlidar::initDriver(); 
     if (!Ydlidar::singleton()) {
-        fprintf(stderr, "[EAI ERROR]: Create Driver fail, exit\n");
+        fprintf(stderr, "[EAI ERROR]: Create Driver fail, exit.\n");
         return -2;
     }
     signal(SIGINT, Stop); 
@@ -170,12 +171,58 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    fprintf(stdout, "[EAI INFO]: Connected the port %s , start to scan ......\n", port.c_str());
+    fprintf(stdout, "[EAI INFO]: Connected the port %s \n", port.c_str());
+
+    device_info devinfo;
+    if (Ydlidar::singleton()->getDeviceInfo(devinfo) !=0){
+        fprintf(stderr, "get DeviceInfo Error\n" );
+        Ydlidar::singleton()->disconnect();
+        Ydlidar::done();
+        return -1;
+    }
+
+    switch(devinfo.model){
+        case 1:
+            model="F4";
+            break;
+        case 2:
+            model="T1";
+            break;
+        case 3:
+            model="F2";
+            break;
+        case 4:
+            model="S4";
+            break;
+        case 5:
+            model="G4";
+            break;
+        case 6:
+            model="X4";
+            break;
+    }
+    
+
+    printf("[EAI INFO] YDLIDAR INFO :\n"
+           "Firmware version: %d.%d\n"
+           "Hardware version: %d\n"
+           "Model: %s\n"
+           "Serial: ",
+           (devinfo.firmware_version>>8),
+           (devinfo.firmware_version&0xff),
+           devinfo.hardware_version,
+           model);
+    for (int i=0;i<16;i++){
+        printf("%d",devinfo.serialnum[i]&0xF);
+    }
+    printf("\n");
+
+
     int ans=Ydlidar::singleton()->startScan();
     if(ans != 0){
 	ans = Ydlidar::singleton()->startScan();
 	if(ans !=0){
-	    fprintf(stdout, "Start LIDAR is failed! Exit!! ......\n");
+	    fprintf(stdout, "[EAI ERROR]:Start LIDAR is failed! Exit!! Please check the baudrate of the LIDAR......\n");
 	    Ydlidar::singleton()->disconnect();
 	    Ydlidar::done();
 	}
@@ -248,7 +295,7 @@ int main(int argc, char * argv[]) {
             ros::spinOnce();
 
 	}catch(std::exception &e){//
-            std::cerr << "Unhandled Exception: " << e.what() << std::endl;
+            std::cerr << "[EAI ERROR]: Unhandled Exception, " << e.what() << std::endl;
     	    Ydlidar::singleton()->disconnect();
 	    printf("[EAI INFO]: Now LIDAR is stopping .......\n");
     	    Ydlidar::done();
