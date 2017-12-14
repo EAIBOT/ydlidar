@@ -12,16 +12,11 @@
 
 #define RAD2DEG(x) ((x)*180./M_PI)
 
-int round_double(double number)
-{
-    return (number > 0.0) ? (number + 0.5) : (number - 0.5); 
-}
-
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
 {
-    int count = round_double(scan->scan_time / scan->time_increment);
-    ROS_INFO("[EAI INFO]: I heard a laser scan %s[%d]:", scan->header.frame_id.c_str(), count);
-    ROS_INFO("[EAI INFO]: angle_range, %f, %f", RAD2DEG(scan->angle_min), RAD2DEG(scan->angle_max));
+    int count = scan->scan_time / scan->time_increment;
+    ROS_INFO("[YDLIDAR INFO]: I heard a laser scan %s[%d]:", scan->header.frame_id.c_str(), count);
+    ROS_INFO("[YDLIDAR INFO]: angle_range, %f, %f", RAD2DEG(scan->angle_min), RAD2DEG(scan->angle_max));
   
     for(int i = 0; i < count; i++) {
         float degree = RAD2DEG(scan->angle_min + scan->angle_increment * i);
@@ -33,9 +28,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "ydlidar_client");
     ros::NodeHandle n;
-
     ros::Subscriber sub = n.subscribe<sensor_msgs::LaserScan>("/scan", 1000, scanCallback);
-
     ros::spin();
 
     return 0;

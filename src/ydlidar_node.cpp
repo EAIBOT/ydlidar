@@ -9,17 +9,20 @@
 
 #include "ros/ros.h"
 #include "sensor_msgs/LaserScan.h"
-
-#include "ydlidar.h"
+#include "ydlidar_driver.h"
 #include <vector>
 #include <iostream>
 #include <string>
 #include <signal.h>
 
+
 #define NODE_COUNTS 720
 #define EACH_ANGLE 0.5
 #define DELAY_SECONDS 26
 #define DEG2RAD(x) ((x)*M_PI/180.)
+
+using namespace ydlidar;
+
 static bool flag = true;
 
 void publish_scan(ros::Publisher *pub,  node_info *nodes,  size_t node_count, ros::Time start, double scan_time, float angle_min, float angle_max, std::string frame_id, std::vector<int> ignore_array)
@@ -44,17 +47,19 @@ void publish_scan(ros::Publisher *pub,  node_info *nodes,  size_t node_count, ro
             }else{
                 angle=-angle;
             }
-	    for(unsigned int j = 0; j < ignore_array.size();j = j+2){
+	    for(uint16_t j = 0; j < ignore_array.size();j = j+2){
                 if((ignore_array[j] < angle) && (angle <= ignore_array[j+1])){
                     if(i<node_count/2){
                         nodes_array[node_count/2-1-i] = 0;
                     }else{
                         nodes_array[node_count-1-(i-node_count/2)] = 0;
                     }
-		    break;
+
+		   break;
 		}
 	    }
 	}
+
     }
 
     int counts = node_count*((angle_max-angle_min)/360.0f);
@@ -94,141 +99,198 @@ std::vector<int> split(const std::string &s, char delim) {
     return elems;
 }
 
+/** Returns true if the device is connected & operative */
+bool getDeviceInfo(std::string port)
+{
+    if (!YDlidarDriver::singleton()) return false;
+
+	device_info devinfo;
+	if (YDlidarDriver::singleton()->getDeviceInfo(devinfo) !=0){
+		ROS_ERROR("[YDLIDAR] get DeviceInfo Error\n" );
+		return false;
+	}
+         
+    std::string model;
+    switch(devinfo.model){
+            case 1:
+                model="F4";
+                break;
+            case 2:
+                model="T1";
+                break;
+            case 3:
+                model="F2";
+                break;
+            case 4:
+                model="S4";
+                break;
+            case 5:
+                model="G4";
+                break;
+            case 6:
+                model="X4";
+                break;
+            default:
+                model = "Unknown";
+    }
+
+    uint16_t maxv = (uint16_t)(devinfo.firmware_version>>8);
+    uint16_t midv = (uint16_t)(devinfo.firmware_version&0xff)/10;
+    uint16_t minv = (uint16_t)(devinfo.firmware_version&0xff)%10;
+    if(midv==0){
+        midv = minv;
+        minv = 0;
+    }
+
+	printf("[YDLIDAR] Connection established in [%s]:\n"
+			   "Firmware version: %u.%u.%u\n"
+			   "Hardware version: %u\n"
+			   "Model: %s\n"
+			   "Serial: ",
+			    port.c_str(),
+			    maxv,
+			    midv,
+                minv,
+			    (uint16_t)devinfo.hardware_version,
+			    model.c_str());
+
+		for (int i=0;i<16;i++)
+			printf("%01X",devinfo.serialnum[i]&0xff);
+		printf("\n");
+	return true;
+
+}
+
+
+/** Returns true if the device is connected & operative */
+bool getDeviceHealth()
+{
+	if (!YDlidarDriver::singleton()) return false;
+
+	int op_result;
+    device_health healthinfo;
+
+	op_result = YDlidarDriver::singleton()->getHealth(healthinfo);
+    if (op_result == 0) { 
+        	ROS_INFO("YDLIDAR running correctly ! The health status: %s", healthinfo.status==0?"good":"bad");
+        
+        	if (healthinfo.status == 2) {
+            	ROS_ERROR("Error, YDLIDAR internal error detected. Please reboot the device to retry.");
+           	 	return false;
+        	} else {
+            	return true;
+        	}
+
+    	} else {
+        	ROS_ERROR("Error, cannot retrieve YDLIDAR health code: %x", op_result);
+        	return false;
+    	}
+
+}
+
+
 static void Stop(int signo)   
-{  
-    
-    printf("[EAI INFO]:Received exit signal\n");
+{   
     flag = false;
-    Ydlidar::singleton()->disconnect();
-    Ydlidar::done(); 
-    exit(1);
+    signal(signo, SIG_DFL);
+    YDlidarDriver::singleton()->disconnect();
+    ROS_INFO("[YDLIDAR INFO]: Now YDLIDAR is stopping .......\n");
+    YDlidarDriver::done();
+    exit(0);
      
 } 
 
 int main(int argc, char * argv[]) {
     ros::init(argc, argv, "ydlidar_node");
  
+
     std::string port;
     int baudrate;
     std::string frame_id;
-    bool angle_fixed;
+    bool angle_fixed, intensities_;
     double angle_max,angle_min;
     u_int32_t op_result;
 
     std::string list;
     std::vector<int> ignore_array;
-    const char * model;
 
     ros::NodeHandle nh;
     ros::Publisher scan_pub = nh.advertise<sensor_msgs::LaserScan>("scan", 1000);
     ros::NodeHandle nh_private("~");
-    nh_private.param<std::string>("port", port, "/dev/ttyACM0"); 
+    nh_private.param<std::string>("port", port, "/dev/ydlidar"); 
     nh_private.param<int>("baudrate", baudrate, 128000); 
     nh_private.param<std::string>("frame_id", frame_id, "laser_frame");
     nh_private.param<bool>("angle_fixed", angle_fixed, "true");
+    nh_private.param<bool>("intensities", intensities_, "false");
     nh_private.param<double>("angle_max", angle_max , 180);
     nh_private.param<double>("angle_min", angle_min , -180);
     nh_private.param<std::string>("ignore_array",list,"");
-
     ignore_array = split(list ,',');
+
+
     if(ignore_array.size()%2){
-        ROS_ERROR_STREAM("[EAI ERROR]: Ignore array is odd need be even.");
+        ROS_ERROR_STREAM("ignore array is odd need be even");
     }
 
-    for(unsigned int i =0 ; i < ignore_array.size();i++){
+    for(uint16_t i =0 ; i < ignore_array.size();i++){
         if(ignore_array[i] < -180 && ignore_array[i] > 180){
-            ROS_ERROR_STREAM("[EAI ERROR]: Ignore array should be -180<=  <=180.");
+            ROS_ERROR_STREAM("ignore array should be -180<=  <=180");
         }
     }
 
-    Ydlidar::initDriver(); 
-    if (!Ydlidar::singleton()) {
-        fprintf(stderr, "[EAI ERROR]: Create Driver fail, exit.\n");
+    YDlidarDriver::initDriver(); 
+    if (!YDlidarDriver::singleton()) {
+        ROS_ERROR("[YDLIDAR ERROR]: Create Driver fail, exit\n");
         return -2;
     }
+
     signal(SIGINT, Stop); 
     signal(SIGTERM, Stop);
 
-    op_result = Ydlidar::singleton()->connect(port.c_str(), (u_int32_t)baudrate);
+    ROS_INFO("Current SDK Version: %s",YDlidarDriver::singleton()->getSDKVersion().c_str());
+
+    op_result = YDlidarDriver::singleton()->connect(port.c_str(), (uint32_t)baudrate);
     if (op_result == -1) {
         int seconds=0;
-        while(seconds <= DELAY_SECONDS && flag){
+        while(seconds <= DELAY_SECONDS&&flag){
             sleep(2);
             seconds = seconds + 2;
-            Ydlidar::singleton()->disconnect();
-            op_result = Ydlidar::singleton()->connect(port.c_str(), (u_int32_t)baudrate);
-            fprintf(stdout, "[EAI INFO]: Try to connect the port %s again  after %d s .\n", port.c_str() , seconds);
+            YDlidarDriver::singleton()->disconnect();
+            op_result = YDlidarDriver::singleton()->connect(port.c_str(), (uint32_t)baudrate);
+            ROS_INFO("[YDLIDAR INFO]: Try to connect the port %s again  after %d s .", port.c_str() , seconds);
             if(op_result==0){
                 break;
             }
         }
         
         if(seconds > DELAY_SECONDS){
-            fprintf(stderr, "[EAI ERROR]: Cannot bind to the specified serial port %s.\n" , port.c_str());
-	    Ydlidar::singleton()->disconnect();
-	    Ydlidar::done();
+            ROS_ERROR("[YDLIDAR ERROR]: Cannot bind to the specified serial port %s" , port.c_str());
+	        YDlidarDriver::singleton()->disconnect();
+	        YDlidarDriver::done();
             return -1;
         }
     }
 
-    fprintf(stdout, "[EAI INFO]: Connected the port %s \n", port.c_str());
 
-    device_info devinfo;
-    if (Ydlidar::singleton()->getDeviceInfo(devinfo) !=0){
-        fprintf(stderr, "get DeviceInfo Error\n" );
-        Ydlidar::singleton()->disconnect();
-        Ydlidar::done();
-        return -1;
+    if(!getDeviceHealth()||!getDeviceInfo(port)){
+	    YDlidarDriver::singleton()->disconnect();
+	    YDlidarDriver::done();
+	    return -1;
+
     }
-
-    switch(devinfo.model){
-        case 1:
-            model="F4";
-            break;
-        case 2:
-            model="T1";
-            break;
-        case 3:
-            model="F2";
-            break;
-        case 4:
-            model="S4";
-            break;
-        case 5:
-            model="G4";
-            break;
-        case 6:
-            model="X4";
-            break;
-    }
-    
-
-    printf("[EAI INFO] YDLIDAR INFO :\n"
-           "Firmware version: %d.%d\n"
-           "Hardware version: %d\n"
-           "Model: %s\n"
-           "Serial: ",
-           (devinfo.firmware_version>>8),
-           (devinfo.firmware_version&0xff),
-           devinfo.hardware_version,
-           model);
-    for (int i=0;i<16;i++){
-        printf("%d",devinfo.serialnum[i]&0xF);
-    }
-    printf("\n");
-
-
-    int ans=Ydlidar::singleton()->startScan();
+    YDlidarDriver::singleton()->setIntensities(intensities_);
+    int ans=YDlidarDriver::singleton()->startScan();
     if(ans != 0){
-	ans = Ydlidar::singleton()->startScan();
-	if(ans !=0){
-	    fprintf(stdout, "[EAI ERROR]:Start LIDAR is failed! Exit!! Please check the baudrate of the LIDAR......\n");
-	    Ydlidar::singleton()->disconnect();
-	    Ydlidar::done();
-	}
+	    ans = YDlidarDriver::singleton()->startScan();
+	    if(ans !=0){
+	        ROS_ERROR("start YDLIDAR is failed! Exit!! ......");
+	        YDlidarDriver::singleton()->disconnect();
+	        YDlidarDriver::done();
+            	return 0;
+	    }
      }
 	
-    fprintf(stdout, "[EAI INFO]: Now LIDAR is scanning ......\n");
+    ROS_INFO("[YDLIDAR INFO]: Now YDLIDAR is scanning ......");
     flag = false;
     ros::Time start_scan_time;
     ros::Time end_scan_time;
@@ -239,78 +301,77 @@ int main(int argc, char * argv[]) {
     memset(all_nodes, 0, NODE_COUNTS*sizeof(node_info));
 
     while (ros::ok()) {
-        try{
-            node_info nodes[NODE_COUNTS];
-            size_t   count = _countof(nodes);
+     try{
+        node_info nodes[360*2];
+        size_t   count = _countof(nodes);
 
-            start_scan_time = ros::Time::now();
-            op_result = Ydlidar::singleton()->grabScanData(nodes, count);
-            end_scan_time = ros::Time::now();
-            scan_duration = (end_scan_time - start_scan_time).toSec();
-
-            if (op_result == 0) {
-                op_result = Ydlidar::singleton()->ascendScanData(nodes, count);
+        start_scan_time = ros::Time::now();
+        op_result = YDlidarDriver::singleton()->grabScanData(nodes, count);
+        end_scan_time = ros::Time::now();
+        scan_duration = (end_scan_time - start_scan_time).toSec();
+        
+        if (op_result == 0) {
+            op_result = YDlidarDriver::singleton()->ascendScanData(nodes, count);
             
-                if (op_result == 0) {
-                    if (angle_fixed) {
-                        memset(all_nodes, 0, NODE_COUNTS*sizeof(node_info));
-                        int i = 0 ;
-                        for( ; i < count; i++) {
-                            if (nodes[i].distance_q2 != 0) {
-                                float angle = (float)((nodes[i].angle_q6_checkbit >> LIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)/64.0f);
-                                int inter =(int)( angle / EACH_ANGLE );
-                                float angle_pre = angle - inter * EACH_ANGLE;
-                                float angle_next = (inter+1) * EACH_ANGLE - angle;
-                                if(angle_pre < angle_next){
-		                    if(inter < NODE_COUNTS)
-                               	        all_nodes[inter]=nodes[i];
-                                }else{
-		                    if(inter < NODE_COUNTS-1)
-                                        all_nodes[inter+1]=nodes[i];
-                                }
+            if (op_result == 0) {
+                if (angle_fixed) {
+                    memset(all_nodes, 0, NODE_COUNTS*sizeof(node_info));
+                    int i = 0 ;
+                    for( ; i < count; i++) {
+                        if (nodes[i].distance_q2 != 0) {
+                            float angle = (float)((nodes[i].angle_q6_checkbit >> LIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)/64.0f);
+                            int inter =(int)( angle / EACH_ANGLE );
+                            float angle_pre = angle - inter * EACH_ANGLE;
+                            float angle_next = (inter+1) * EACH_ANGLE - angle;
+                            if(angle_pre < angle_next){
+				                if(inter < NODE_COUNTS)
+                                	all_nodes[inter]=nodes[i];
+                            }else{
+				                if(inter < NODE_COUNTS-1)
+                                	all_nodes[inter+1]=nodes[i];
                             }
                         }
-                        publish_scan(&scan_pub, all_nodes, NODE_COUNTS, start_scan_time, scan_duration, angle_min, angle_max, frame_id, ignore_array);
-                    } else {
-                        int start_node = 0, end_node = 0;
-                        int i = 0;
-                        while (nodes[i++].distance_q2 == 0&&i<count);
-                        start_node = i-1;
-                        i = count -1;
-                        while (nodes[i--].distance_q2 == 0&&i>=0);
-                        end_node = i+1;
+                    }
+                    publish_scan(&scan_pub, all_nodes, NODE_COUNTS, start_scan_time, scan_duration, angle_min, angle_max, frame_id, ignore_array);
+                } else {
+                    int start_node = 0, end_node = 0;
+                    int i = 0;
+                    while (nodes[i++].distance_q2 == 0&&i<count);
+                    start_node = i-1;
+                    i = count -1;
+                    while (nodes[i--].distance_q2 == 0&&i>=0);
+                    end_node = i+1;
 
-                        angle_min = (float)(nodes[start_node].angle_q6_checkbit >> LIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)/64.0f;
-                        angle_max = (float)(nodes[end_node].angle_q6_checkbit >> LIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)/64.0f;
+                    angle_min = (float)(nodes[start_node].angle_q6_checkbit >> LIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)/64.0f;
+                    angle_max = (float)(nodes[end_node].angle_q6_checkbit >> LIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)/64.0f;
 
-                        publish_scan(&scan_pub, &nodes[start_node], end_node-start_node +1,  start_scan_time, scan_duration, angle_min, angle_max, frame_id, ignore_array);
-                   }
-                }
-            }else if(op_result == -2){
-                // All the data is invalid, just publish them
-                publish_scan(&scan_pub, all_nodes, NODE_COUNTS, start_scan_time, scan_duration,angle_min, angle_max,frame_id,ignore_array);
+                    publish_scan(&scan_pub, &nodes[start_node], end_node-start_node +1,  start_scan_time, scan_duration, angle_min, angle_max, frame_id, ignore_array);
+               }
             }
-  
-            rate.sleep();
-            ros::spinOnce();
-
+        }else if(op_result == -2){
+            // All the data is invalid, just publish them
+            //publish_scan(&scan_pub, all_nodes, NODE_COUNTS, start_scan_time, scan_duration,angle_min, angle_max,frame_id,ignore_array);
+        }
+        rate.sleep();
+        ros::spinOnce();
 	}catch(std::exception &e){//
-            std::cerr << "[EAI ERROR]: Unhandled Exception, " << e.what() << std::endl;
-    	    Ydlidar::singleton()->disconnect();
-	    printf("[EAI INFO]: Now LIDAR is stopping .......\n");
-    	    Ydlidar::done();
-	    return 0;
+		ROS_ERROR_STREAM("Unhandled Exception: " << e.what() );
+    		YDlidarDriver::singleton()->disconnect();
+		ROS_INFO("[YDLIDAR INFO]: Now YDLIDAR is stopping .......");
+    		YDlidarDriver::done();
+		return 0;
 	}catch(...){//anthor exception
-	    std::cerr << "Unhandled Exception:Unknown " <<std::endl;
-    	    Ydlidar::singleton()->disconnect();
-	    printf("[EAI INFO]: Now LIDAR is stopping .......\n");
-    	    Ydlidar::done();
-	    return 0;
+		ROS_ERROR("Unhandled Exception:Unknown ");
+    		YDlidarDriver::singleton()->disconnect();
+		ROS_INFO("[YDLIDAR INFO]: Now YDLIDAR is stopping .......");
+    		YDlidarDriver::done();
+		return 0;
+	
 	}
     }
 
-    Ydlidar::singleton()->disconnect();
-    printf("[EAI INFO]: Now LIDAR is stopping .......\n");
-    Ydlidar::done();
+    YDlidarDriver::singleton()->disconnect();
+    ROS_INFO("[YDLIDAR INFO]: Now YDLIDAR is stopping .......\n");
+    YDlidarDriver::done();
     return 0;
 }
