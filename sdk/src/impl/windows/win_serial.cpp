@@ -595,11 +595,18 @@ namespace serial {
 		}
 		if (level) {
 			//EscapeCommFunction (fd_, SETBREAK);
-			::SetCommBreak(fd_);
+			//::SetCommBreak(fd_);
+			if(::SetCommBreak(fd_) == FALSE){
+				return false;
+			}
 		} else {
-			::ClearCommBreak(fd_);
+			//::ClearCommBreak(fd_);
 			//EscapeCommFunction (fd_, CLRBREAK);
+			if(::ClearCommBreak(fd_) == FALSE){
+				return false;
+			}
 		}
+		return true;
 	}
 
 	bool Serial::SerialImpl::setRTS (bool level) {
@@ -607,10 +614,17 @@ namespace serial {
 			return false;
 		}
 		if (level) {
-			EscapeCommFunction (fd_, SETRTS);
+			//EscapeCommFunction (fd_, SETRTS);
+			if(EscapeCommFunction (fd_, SETRTS) == FALSE){
+				return false;
+			}
 		} else {
-			EscapeCommFunction (fd_, CLRRTS);
+			//EscapeCommFunction (fd_, CLRRTS);
+			if(EscapeCommFunction (fd_, CLRRTS) == FALSE){
+				return false;
+			}
 		}
+		return true;
 	}
 
 	bool Serial::SerialImpl::setDTR (bool level) {
@@ -618,10 +632,17 @@ namespace serial {
 			return false;
 		}
 		if (level) {
-			EscapeCommFunction (fd_, SETDTR);
+			//EscapeCommFunction (fd_, SETDTR);
+			if(EscapeCommFunction (fd_, SETDTR) == FALSE){
+				return false;
+			}
 		} else {
-			EscapeCommFunction (fd_, CLRDTR);
+			//EscapeCommFunction (fd_, CLRDTR);
+			if(EscapeCommFunction (fd_, CLRDTR) == FALSE){
+				return false;
+			}
 		}
+		return true;
 	}
 
 	bool Serial::SerialImpl::waitForChange () {
