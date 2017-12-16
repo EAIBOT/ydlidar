@@ -6,10 +6,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#if !defined(__ANDROID__)
 #include <sys/signal.h>
+#include <sysexits.h>
+
+#endif
+
 #include <errno.h>
 #include <paths.h>
-#include <sysexits.h>
 #include <sys/param.h>
 #include <pthread.h>
 #include <poll.h>
@@ -17,7 +21,7 @@
 
 #include <asm/ioctls.h>
 
-#if defined(__linux__)
+#if defined(__linux__) &&!defined(__ANDROID__)
 # include <linux/serial.h>
 #endif
 
@@ -188,6 +192,34 @@ namespace serial{
 
 #ifndef BOTHER
 #  define BOTHER      0010000
+#endif
+
+
+#if defined(__ANDROID__)
+struct serial_struct {
+    int     type;
+    int     line;
+    unsigned int    port;
+    int     irq;
+    int     flags;
+    int     xmit_fifo_size;
+    int     custom_divisor;
+    int     baud_base;
+    unsigned short  close_delay;
+    char    io_type;
+    char    reserved_char[1];
+    int     hub6;
+    unsigned short  closing_wait;
+    unsigned short  closing_wait2;
+    unsigned char   *iomem_base;
+    unsigned short  iomem_reg_shift;
+    unsigned int    port_high;
+    unsigned long   iomap_base;
+};
+#    define ASYNC_SPD_CUST  0x0030
+#    define ASYNC_SPD_MASK  0x1030
+#    define PORT_UNKNOWN    0
+#    define FNDELAY         0x800
 #endif
 
 
@@ -544,8 +576,7 @@ namespace serial{
 	void Serial::SerialImpl::close (){
 		if (is_open_ == true) {
 			if (fd_ != -1) {
-				int ret;
-				ret = ::close (fd_);
+                ::close (fd_);
 			}
 			fd_ = -1;
 			is_open_ = false;
@@ -871,7 +902,7 @@ namespace serial{
 
 
 	bool Serial::SerialImpl::setStandardBaudRate(speed_t baudrate){
-#ifdef Q_OS_LINUX
+#ifdef __linux__
 		// try to clear custom baud rate, using termios v2
 		struct termios2 tio2;
 		if (::ioctl(fd_, TCGETS2, &tio2) != -1) {
@@ -1049,7 +1080,9 @@ namespace serial{
 		if (is_open_ == false) {
 			return;
 		}
-		tcdrain (fd_);
+		#if !defined(__ANDROID__)
+  		tcdrain (fd_);
+		#endif
 	}
 
 	void Serial::SerialImpl::flushInput (){

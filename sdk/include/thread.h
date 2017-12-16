@@ -11,17 +11,23 @@
 #include <assert.h>
 #endif
 
+#define UNUSED(x) (void)x
+
+#if defined(__ANDROID__)
+#define    pthread_cancel(x) 0
+#endif
+
 #define CLASS_THREAD(c , x ) Thread::ThreadCreateObjectFunctor<c, &c::x>(this)
 
 class Thread
 {
 public:
 
-	template <class CLASS, int (CLASS::*PROC)(void)> static Thread ThreadCreateObjectFunctor(CLASS * pthis){
+        template <class CLASS, int (CLASS::*PROC)(void)> static Thread ThreadCreateObjectFunctor(CLASS * pthis){
 		return createThread(createThreadAux<CLASS,PROC>, pthis);
 	}
 
-	template <class CLASS, int (CLASS::*PROC)(void) > static _size_t THREAD_PROC createThreadAux(void * param){
+        template <class CLASS, int (CLASS::*PROC)(void) > static _size_t THREAD_PROC createThreadAux(void * param){
 		return (static_cast<CLASS *>(param)->*PROC)();
 	}
 
@@ -81,6 +87,7 @@ public:
 			return -1;
 		}		
 #else
+                UNUSED(timeout);
 		pthread_join((pthread_t)(this->_handle), NULL);
 #endif
 		return 0;
