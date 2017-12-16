@@ -45,6 +45,8 @@ typedef uint32_t       _size_t;
 
 typedef _size_t (THREAD_PROC * thread_proc_t ) ( void * );
 
+typedef int32_t result_t;
+
 #define RESULT_OK      0
 #define RESULT_TIMEOUT -1
 #define RESULT_FAIL    -2

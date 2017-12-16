@@ -54,6 +54,8 @@ You should see YDLIDAR's scan result in the console
 
    2.修复雷达没有数据
 
-2017-12-14 version:1.2.0
+2017-12-16 version:1.2.0
 
-SDK统一平台
+   1.SDK统一平台
+
+
