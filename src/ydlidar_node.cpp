@@ -16,8 +16,8 @@
 #include <signal.h>
 
 
-#define NODE_COUNTS 720
-#define EACH_ANGLE 0.5
+#define NODE_COUNTS 1440
+#define EACH_ANGLE 0.25
 #define DELAY_SECONDS 26
 #define DEG2RAD(x) ((x)*M_PI/180.)
 
@@ -302,7 +302,7 @@ int main(int argc, char * argv[]) {
 
     while (ros::ok()) {
      try{
-        node_info nodes[360*2];
+        node_info nodes[NODE_COUNTS];
         size_t   count = _countof(nodes);
 
         start_scan_time = ros::Time::now();
