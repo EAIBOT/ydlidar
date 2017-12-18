@@ -931,7 +931,7 @@ struct serial_struct {
 			return false;
 		}
 #ifdef _BSD_SOURCE
-		if(::cfsetspeed(&options, baudrate) <0){
+		if(::cfsetspeed(&tio, baudrate) <0){
 			return false;
 		}
 #else
