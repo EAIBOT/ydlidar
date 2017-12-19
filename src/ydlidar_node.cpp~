@@ -329,6 +329,7 @@ int main(int argc, char * argv[]) {
 
         start_scan_time = ros::Time::now();
         op_result = YDlidarDriver::singleton()->grabScanData(nodes, count);
+ROS_INFO("Current count : %d",(int)count);
         end_scan_time = ros::Time::now();
         scan_duration = (end_scan_time - start_scan_time).toSec();
         
