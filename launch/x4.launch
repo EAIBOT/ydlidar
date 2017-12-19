@@ -7,6 +7,8 @@
     <param name="intensities"  type="bool"   value="false"/>
     <param name="angle_min"    type="double" value="-180" />
     <param name="angle_max"    type="double" value="180" />
+    <param name="range_min"    type="double" value="0.08" />
+    <param name="range_max"    type="double" value="10.0" />
     <param name="ignore_array" type="string" value="" />
     <param name="samp_rate"    type="int"    value="0"/>
   </node>
