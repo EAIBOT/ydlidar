@@ -16,4 +16,4 @@
 #include "serial.h"
 #include "thread.h"
 
-#define SDKVerision "1.2.0"
+#define SDKVerision "1.3.0"
