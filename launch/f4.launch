@@ -10,7 +10,6 @@
     <param name="range_min"    type="double" value="0.08" />
     <param name="range_max"    type="double" value="8.0" />
     <param name="ignore_array" type="string" value="" />
-    <param name="samp_rate"    type="int"    value="0"/>
   </node>
   <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser4"
     args="0.2245 0.0 0.2 0.12 0.0  0.0 /base_footprint /laser_frame 40" />

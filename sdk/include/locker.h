@@ -85,27 +85,27 @@ public:
 			}
 
 #else
-             struct timeval timenow;
-             struct timespec sleepytime;
-             /* This is just to avoid a completely busy wait */
-             sleepytime.tv_sec = 0;
-             sleepytime.tv_nsec = 10000000; /* 10ms */
+			struct timeval timenow;
+			struct timespec sleepytime;
+			/* This is just to avoid a completely busy wait */
+			sleepytime.tv_sec = 0;
+			sleepytime.tv_nsec = 10000000; /* 10ms */
 
-             while (pthread_mutex_trylock (&_lock) == EBUSY) {
-              gettimeofday (&timenow, NULL);
+			while (pthread_mutex_trylock (&_lock) == EBUSY) {
+				gettimeofday (&timenow, NULL);
 
-              if (timenow.tv_sec >= wait_time.tv_sec &&
-                  (timenow.tv_usec * 1000) >= wait_time.tv_nsec) {
-               return LOCK_TIMEOUT;
-              }
+				if (timenow.tv_sec >= wait_time.tv_sec &&
+					(timenow.tv_usec * 1000) >= wait_time.tv_nsec) {
+						return LOCK_TIMEOUT;
+				}
 
-              nanosleep (&sleepytime, NULL);
-             }
+				nanosleep (&sleepytime, NULL);
+			}
 
-            return LOCK_OK;
+			return LOCK_OK;
 
 #endif
-			
+
 		}
 #endif
 #endif
