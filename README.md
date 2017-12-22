@@ -1,4 +1,4 @@
-YDLIDAR ROS PACKAGE V1.2.0
+YDLIDAR ROS PACKAGE V1.2.1
 =====================================================================
 
 ROS node and test application for YDLIDAR
@@ -57,5 +57,4 @@ You should see YDLIDAR's scan result in the console
 2017-12-16 version:1.2.0
 
    1.SDK统一平台
-
 

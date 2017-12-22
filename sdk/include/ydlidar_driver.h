@@ -36,8 +36,12 @@
 
 #define LIDAR_CMD_RUN_POSITIVE             0x06
 #define LIDAR_CMD_RUN_INVERSION            0x07
-#define LIDAR_CMD_AIMSPEED_ADD             0x09
-#define LIDAR_CMD_AIMSPEED_MIN             0x0A
+#define LIDAR_CMD_SET_AIMSPEED_ADDMIC      0x09
+#define LIDAR_CMD_SET_AIMSPEED_DISMIC      0x0A
+#define LIDAR_CMD_SET_AIMSPEED_ADD         0x0B
+#define LIDAR_CMD_SET_AIMSPEED_DIS         0x0C
+#define LIDAR_CMD_GET_AIMSPEED             0x0D
+
 #define LIDAR_CMD_SET_SAMPLING_RATE        0xD0
 #define LIDAR_CMD_GET_SAMPLING_RATE        0xD1
 #define LIDAR_STATUS_OK                    0x0
@@ -105,7 +109,15 @@ struct device_health {
 } __attribute__((packed))  ;
 
 struct sampling_rate {
-	uint8_t   rate;
+	uint8_t rate;
+} __attribute__((packed))  ;
+
+struct scan_frequency {
+	uint32_t frequency;
+} __attribute__((packed))  ;
+
+struct scan_rotation {
+	uint8_t rotation;
 } __attribute__((packed))  ;
 
 struct cmd_packet {
@@ -187,43 +199,48 @@ namespace ydlidar{
 			}
 		}
 
-                result_t connect(const char * port_path, uint32_t baudrate);
+		result_t connect(const char * port_path, uint32_t baudrate);
 		void disconnect();
 		const std::string getSDKVersion();
 		void setIntensities(const bool isintensities);
-                result_t getHealth(device_health & health, uint32_t timeout = DEFAULT_TIMEOUT);
-                result_t getDeviceInfo(device_info & info, uint32_t timeout = DEFAULT_TIMEOUT);
-                result_t startScan(bool force = false, uint32_t timeout = DEFAULT_TIMEOUT) ;
-                result_t stop();
-                result_t grabScanData(node_info * nodebuffer, size_t & count, uint32_t timeout = DEFAULT_TIMEOUT) ;
-                result_t ascendScanData(node_info * nodebuffer, size_t count);
+		result_t getHealth(device_health & health, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t getDeviceInfo(device_info & info, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t startScan(bool force = false, uint32_t timeout = DEFAULT_TIMEOUT) ;
+		result_t stop();
+		result_t grabScanData(node_info * nodebuffer, size_t & count, uint32_t timeout = DEFAULT_TIMEOUT) ;
+		result_t ascendScanData(node_info * nodebuffer, size_t count);
 		void simpleScanData(std::vector<scanDot> * scan_data , node_info *buffer, size_t count);
 
-                result_t reset(uint32_t timeout = DEFAULT_TIMEOUT);
-                result_t startMotor();
-                result_t stopMotor();
-                result_t setNoRebackOrder(const char * order, uint32_t timeout = DEFAULT_TIMEOUT);
-                result_t getFrequency(uint32_t model, size_t count, float & frequency);
-                result_t getSamplingRate(sampling_rate & rate, uint32_t timeout = DEFAULT_TIMEOUT);
-                result_t setSamplingRate(sampling_rate & rate, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t reset(uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t startMotor();
+		result_t stopMotor();
+		result_t getScanFrequency(scan_frequency & frequency, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t setScanFrequencyAdd(scan_frequency & frequency, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t setScanFrequencyDis(scan_frequency & frequency, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t setScanFrequencyAddMic(scan_frequency & frequency, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t setScanFrequencyDisMic(scan_frequency & frequency, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t getSamplingRate(sampling_rate & rate, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t setSamplingRate(sampling_rate & rate, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t setRotationPositive(scan_rotation & rotation, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t setRotationInversion(scan_rotation & rotation, uint32_t timeout = DEFAULT_TIMEOUT);
 
 	protected:
 		YDlidarDriver();
 		virtual ~YDlidarDriver();
 
-                result_t createThread();
-                result_t waitPackage(node_info * node, uint32_t timeout = DEFAULT_TIMEOUT);
-                result_t waitScanData(node_info * nodebuffer, size_t & count, uint32_t timeout = DEFAULT_TIMEOUT);
-                int cacheScanData();
-                result_t sendCommand(uint8_t cmd, const void * payload = NULL, size_t payloadsize = 0);
-                result_t waitResponseHeader(lidar_ans_header * header, uint32_t timeout = DEFAULT_TIMEOUT);
-                result_t waitForData(size_t data_count,uint32_t timeout = -1, size_t * returned_size = NULL);
-                result_t getData(uint8_t * data, size_t size);
-                result_t sendData(const uint8_t * data, size_t size);
+		result_t createThread();
+		result_t waitPackage(node_info * node, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t waitScanData(node_info * nodebuffer, size_t & count, uint32_t timeout = DEFAULT_TIMEOUT);
+		int cacheScanData();
+		result_t sendCommand(uint8_t cmd, const void * payload = NULL, size_t payloadsize = 0);
+		result_t waitResponseHeader(lidar_ans_header * header, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t waitForData(size_t data_count,uint32_t timeout = -1, size_t * returned_size = NULL);
+		result_t getData(uint8_t * data, size_t size);
+		result_t sendData(const uint8_t * data, size_t size);
 		void disableDataGrabbing();
 		void setDTR();
 		void clearDTR();
-		
+
 
 	public:
 		bool     isConnected;
