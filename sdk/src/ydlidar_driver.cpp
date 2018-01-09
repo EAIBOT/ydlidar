@@ -439,8 +439,8 @@ namespace ydlidar{
 		static node_packages packages;
 
 		static uint16_t package_Sample_Index = 0;
-		static uint16_t IntervalSampleAngle = 0;
-		static uint16_t IntervalSampleAngle_LastPackage = 0;
+		static float IntervalSampleAngle = 0;
+		static float IntervalSampleAngle_LastPackage = 0;
 		static uint16_t FirstSampleAngle = 0;
 		static uint16_t LastSampleAngle = 0;
 		static uint16_t CheckSun = 0;
@@ -654,12 +654,12 @@ namespace ydlidar{
 				AngleCorrectForDistance = 0;		
 			}
 			if((FirstSampleAngle + IntervalSampleAngle*package_Sample_Index + AngleCorrectForDistance) < 0){
-				(*node).angle_q6_checkbit = ((FirstSampleAngle + IntervalSampleAngle*package_Sample_Index + AngleCorrectForDistance + 360*64)<<1) + LIDAR_RESP_MEASUREMENT_CHECKBIT;
+				(*node).angle_q6_checkbit = (((uint16_t)(FirstSampleAngle + IntervalSampleAngle*package_Sample_Index + AngleCorrectForDistance + 360*64))<<1) + LIDAR_RESP_MEASUREMENT_CHECKBIT;
 			}else{
 				if((FirstSampleAngle + IntervalSampleAngle*package_Sample_Index + AngleCorrectForDistance) > 360*64){
-					(*node).angle_q6_checkbit = ((FirstSampleAngle + IntervalSampleAngle*package_Sample_Index + AngleCorrectForDistance - 360*64)<<1) + LIDAR_RESP_MEASUREMENT_CHECKBIT;
+					(*node).angle_q6_checkbit = (((uint16_t)(FirstSampleAngle + IntervalSampleAngle*package_Sample_Index + AngleCorrectForDistance - 360*64))<<1) + LIDAR_RESP_MEASUREMENT_CHECKBIT;
 				}else{
-					(*node).angle_q6_checkbit = ((FirstSampleAngle + IntervalSampleAngle*package_Sample_Index + AngleCorrectForDistance)<<1) + LIDAR_RESP_MEASUREMENT_CHECKBIT;
+					(*node).angle_q6_checkbit = (((uint16_t)(FirstSampleAngle + IntervalSampleAngle*package_Sample_Index + AngleCorrectForDistance))<<1) + LIDAR_RESP_MEASUREMENT_CHECKBIT;
 				} 
 			}
 		}else{
