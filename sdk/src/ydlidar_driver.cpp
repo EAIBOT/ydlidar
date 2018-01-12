@@ -537,13 +537,13 @@ namespace ydlidar{
 						}else{
 							if(LastSampleAngle < FirstSampleAngle){
 								if((FirstSampleAngle > 270*64) && (LastSampleAngle < 90*64)){
-									IntervalSampleAngle = (360*64 + LastSampleAngle - FirstSampleAngle)/(package_Sample_Num-1);
+									IntervalSampleAngle = (float)((360*64 + LastSampleAngle - FirstSampleAngle)/((package_Sample_Num-1)*1.0));
 									IntervalSampleAngle_LastPackage = IntervalSampleAngle;
 								} else{
 									IntervalSampleAngle = IntervalSampleAngle_LastPackage;
 								}
 							} else{
-								IntervalSampleAngle = (LastSampleAngle -FirstSampleAngle)/(package_Sample_Num-1);
+								IntervalSampleAngle = (float)((LastSampleAngle -FirstSampleAngle)/((package_Sample_Num-1)*1.0));
 								IntervalSampleAngle_LastPackage = IntervalSampleAngle;
 							}
 						}
