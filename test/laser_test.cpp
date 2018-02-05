@@ -1,12 +1,14 @@
-//
-// Created by lhx on 15-12-23.
-//
+/*
+ *  YDLIDAR SYSTEM
+ *
+ *  Copyright 2015 - 2018 EAI TEAM
+ *  http://www.ydlidar.com
+ * 
+ */
 
 #include "laser_test.h"
-
 using namespace serial;
 using namespace ydlidar;
-
 Lasertest::DEVICE_STATE Lasertest::device_state_ = CLOSED;
 
 Lasertest::Lasertest()
@@ -45,47 +47,49 @@ void Lasertest::run() {
 }
 
 void  Lasertest::closeApp(int signo){
-	device_state_ = CLOSED;
-	signal(signo, SIG_DFL);
-	YDlidarDriver::singleton()->disconnect();
-    	printf("Now YDLIDAR is stopping .......\n");
-    	YDlidarDriver::done();
-    	exit(0);
+    device_state_ = CLOSED;
+    signal(signo, SIG_DFL);
+    YDlidarDriver::singleton()->disconnect();
+    printf("Now YDLIDAR is stopping .......\n");
+    YDlidarDriver::done();
+    exit(0);
 }
 
 /** Returns true if the device is connected & operative */
 bool Lasertest::getDeviceInfo()
 {
-    if (!YDlidarDriver::singleton()) return false;
+    if (!YDlidarDriver::singleton()){
+        return false;
+    }
 
-	device_info devinfo;
-	if (YDlidarDriver::singleton()->getDeviceInfo(devinfo) !=RESULT_OK){
-		fprintf(stderr,"[YDLIDAR] get DeviceInfo Error\n" );
-		return false;
-	}
+    device_info devinfo;
+    if (YDlidarDriver::singleton()->getDeviceInfo(devinfo) !=RESULT_OK){
+        fprintf(stderr,"[YDLIDAR] get DeviceInfo Error\n" );
+        return false;
+    }
          
     std::string model;
     switch(devinfo.model){
-            case 1:
-                model="F4";
-                break;
-            case 2:
-                model="T1";
-                break;
-            case 3:
-                model="F2";
-                break;
-            case 4:
-                model="S4";
-                break;
-            case 5:
-                model="G4";
-                break;
-            case 6:
-                model="X4";
-                break;
-            default:
-                model = "Unknown";
+        case 1:
+            model="F4";
+            break;
+        case 2:
+            model="T1";
+            break;
+        case 3:
+            model="F2";
+            break;
+        case 4:
+            model="S4";
+            break;
+        case 5:
+            model="G4";
+            break;
+        case 6:
+            model="X4";
+            break;
+        default:
+            model = "Unknown";
     }
 
     unsigned int maxv = (unsigned int)(devinfo.firmware_version>>8);
@@ -96,7 +100,7 @@ bool Lasertest::getDeviceInfo()
         minv = 0;
     }
 
-	printf("[YDLIDAR] Connection established in [%s]:\n"
+    printf("[YDLIDAR] Connection established in [%s]:\n"
 			   "Firmware version: %u.%u.%u\n"
 			   "Hardware version: %u\n"
 			   "Model: %s\n"
@@ -108,43 +112,43 @@ bool Lasertest::getDeviceInfo()
 			    (unsigned int)devinfo.hardware_version,
 			    model.c_str());
 
-		for (int i=0;i<16;i++)
-			printf("%01X",devinfo.serialnum[i]&0xff);
-		printf("\n");
-	return true;
+    for (int i=0;i<16;i++){
+        printf("%01X",devinfo.serialnum[i]&0xff);
+    }
+    printf("\n");
+    return true;
 
 }
 
 /** Returns true if the device is connected & operative */
 bool Lasertest::getDeviceHealth()
 {
-	if (!YDlidarDriver::singleton()) return false;
+    if (!YDlidarDriver::singleton()) return false;
 
-	result_t op_result;
-    	device_health healthinfo;
+    result_t op_result;
+    device_health healthinfo;
 
-	op_result = YDlidarDriver::singleton()->getHealth(healthinfo);
+    op_result = YDlidarDriver::singleton()->getHealth(healthinfo);
     if (op_result == RESULT_OK) { 
-        	fprintf(stdout,"[YDLIDAR] running correctly ! The health status:%s\n" ,healthinfo.status==0? "good":"bad");
-        
-        	if (healthinfo.status == 2) {
-            	fprintf(stderr, "Error, [YDLIDAR] internal error detected. Please reboot the device to retry.\n");
-           	 	return false;
-        	} else {
-            	return true;
-        	}
+        fprintf(stdout,"[YDLIDAR] running correctly ! The health status:%s\n" ,healthinfo.status==0? "good":"bad");
+        if (healthinfo.status == 2) {
+            fprintf(stderr, "Error, [YDLIDAR] internal error detected. Please reboot the device to retry.\n");
+            return false;
+        } else {
+            return true;
+        }
 
-    	} else {
-        	fprintf(stderr, "Error, cannot retrieve YDLIDAR health code: %x\n", op_result);
-        	return false;
-    	}
-
+    } else {
+        fprintf(stderr, "Error, cannot retrieve YDLIDAR health code: %x\n", op_result);
+        return false;
+    }
 }
 
 void Lasertest::Open() {
     try {
-	if(!YDlidarDriver::singleton())
-		    YDlidarDriver::initDriver(); 
+	if(!YDlidarDriver::singleton()){
+	    YDlidarDriver::initDriver();
+        } 
 	result_t op_result = YDlidarDriver::singleton()->connect(port_.c_str(), (uint32_t)baudrate_);
 	if (op_result != RESULT_OK) {
 	  fprintf(stdout,"open Lidar is failed! Exit!! ......\n");
@@ -168,80 +172,72 @@ void Lasertest::Open() {
 	    return;	
 	}
 
-    YDlidarDriver::singleton()->setIntensities(intensities_);
-    fprintf(stdout,"Device opened successfully.\n");
-    device_state_ = OPENED;
-
-	 
-
+        YDlidarDriver::singleton()->setIntensities(intensities_);
+        fprintf(stdout,"Device opened successfully.\n");
+        device_state_ = OPENED;
     } catch (std::exception &e) {
         Close();
         fprintf(stdout,"can't open laser\n ");
     }
 }
 
-void Lasertest::Start() {
-    
-	if(device_state_ !=OPENED|| !YDlidarDriver::singleton())
-		return;
-        node_info all_nodes[NODE_COUNTS];
-    	memset(all_nodes, 0, NODE_COUNTS*sizeof(node_info));
-        fprintf(stdout,"Now YDLIDAR is scanning.\n");
-        device_state_ = RUNNING;
+void Lasertest::Start() {    
+    if(device_state_ !=OPENED|| !YDlidarDriver::singleton()){
+        return;
+    }
+    node_info all_nodes[NODE_COUNTS];
+    memset(all_nodes, 0, NODE_COUNTS*sizeof(node_info));
+    fprintf(stdout,"Now YDLIDAR is scanning.\n");
+    device_state_ = RUNNING;
 
-	double scan_duration;
-        result_t op_result;
+    double scan_duration;
+    result_t op_result;
 
-        while (device_state_ == RUNNING) {
-          try {
-		node_info nodes[360*2];
-        	size_t   count = _countof(nodes);
-		uint64_t start_scan_time = getms();
-        	op_result = YDlidarDriver::singleton()->grabScanData(nodes, count);
-		uint64_t end_scan_time = getms();
-		scan_duration = (end_scan_time - start_scan_time);
+    while (device_state_ == RUNNING) {
+        try {
+            node_info nodes[360*2];
+            size_t   count = _countof(nodes);
+            uint64_t start_scan_time = getms();
+            op_result = YDlidarDriver::singleton()->grabScanData(nodes, count);
+            uint64_t end_scan_time = getms();
+            scan_duration = (end_scan_time - start_scan_time);
 
+            if (op_result == RESULT_OK) {
+                op_result = YDlidarDriver::singleton()->ascendScanData(nodes, count);
 		if (op_result == RESULT_OK) {
-            		op_result = YDlidarDriver::singleton()->ascendScanData(nodes, count);
-			 if (op_result == RESULT_OK) {
-                   		 memset(all_nodes, 0, NODE_COUNTS*sizeof(node_info));
-                    		for(size_t i =0 ; i < count; i++) {
-                        		if (nodes[i].distance_q2 != 0) {
-                            			float angle = (float)((nodes[i].angle_q6_checkbit >> LIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)/64.0f);
-                            			int inter =(int)( angle / EACH_ANGLE );
-                            			float angle_pre = angle - inter * EACH_ANGLE;
-                            			float angle_next = (inter+1) * EACH_ANGLE - angle;
-                            			if(angle_pre < angle_next){
-				    			if(inter < NODE_COUNTS)
-                                				all_nodes[inter]=nodes[i];
-                           		 	}else{
-				    			if(inter < NODE_COUNTS-1)
-                                				all_nodes[inter+1]=nodes[i];
-                            			}
-                       			 }
-                    	  	}
-
-			   publicScanData(all_nodes,start_scan_time,scan_duration,NODE_COUNTS,angle_min_,angle_max_,ignore_array_);
-
-			}
-
-	
-		}else if(op_result == RESULT_FAIL){
-		}
+                    memset(all_nodes, 0, NODE_COUNTS*sizeof(node_info));
+                    for(size_t i =0 ; i < count; i++) {
+                        if (nodes[i].distance_q2 != 0) {
+                            float angle = (float)((nodes[i].angle_q6_checkbit >> LIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)/64.0f);
+                            int inter =(int)( angle / EACH_ANGLE );
+                            float angle_pre = angle - inter * EACH_ANGLE;
+                            float angle_next = (inter+1) * EACH_ANGLE - angle;
+                            if(angle_pre < angle_next){
+			        if(inter < NODE_COUNTS)
+                                    all_nodes[inter]=nodes[i];
+                           	}else{
+				    if(inter < NODE_COUNTS-1)
+                                	all_nodes[inter+1]=nodes[i];
+                            	    }
+                       		}
+                    	    }
+                        }
+                    }
+		    publicScanData(all_nodes,start_scan_time,scan_duration,NODE_COUNTS,angle_min_,angle_max_,ignore_array_);
+                }	
+	    }else if(op_result == RESULT_FAIL){
+	    }
 		
-	   } catch (std::exception& e) {
-        	Close();
-        	fprintf(stderr,"Exception thrown while starting YDLIDAR.\n ");
-        	return;
-   	   } catch (...) {
-        	fprintf(stderr,"Exception thrown while trying to get scan: \n");
-       	 	Close();
-		return;
-    	   }
-
-        }
-
-   
+        } catch (std::exception& e) {
+            Close();
+            fprintf(stderr,"Exception thrown while starting YDLIDAR.\n ");
+            return;
+   	} catch (...) {
+            fprintf(stderr,"Exception thrown while trying to get scan: \n");
+       	    Close();
+	    return;
+    	}
+    }   
 }
 
 void Lasertest::Stop() {
@@ -250,10 +246,10 @@ void Lasertest::Stop() {
 
 void Lasertest::Close() {
     try {
-         YDlidarDriver::singleton()->disconnect();
-	 YDlidarDriver::done();
-         device_state_ = CLOSED;
-	 exit(0);
+        YDlidarDriver::singleton()->disconnect();
+	YDlidarDriver::done();
+        device_state_ = CLOSED;
+	exit(0);
     } catch (std::exception &e) {
         return;
     }
@@ -272,7 +268,7 @@ std::vector<int> Lasertest::split(const std::string &s, char delim) {
 void Lasertest::publicScanData(node_info *nodes, uint64_t start,double scan_time, size_t node_count, float angle_min, float angle_max,std::vector<int> ignore_array) {
     fprintf(stdout,"publicScanData: %lud   ,  %i\n",start, (int)node_count);
 
-   float nodes_array[node_count];
+    float nodes_array[node_count];
     float quality_array[node_count];
     for (size_t i = 0; i < node_count; i++) {
         if(i<node_count/2){
@@ -331,12 +327,12 @@ void Lasertest::publicScanData(node_info *nodes, uint64_t start,double scan_time
         scan.intensities[i] = quality_array[i+node_start];
     }
 
-     for(int i = 0; i < counts; i++) {
+    for(int i = 0; i < counts; i++) {
         float degree = RAD2DEG(scan.config.min_angle + scan.config.ang_increment * i);
-       if(scan.ranges[i] >scan.config.min_angle)
+        if(scan.ranges[i] >scan.config.min_angle){
             printf(": [%f, %f]", degree, scan.ranges[i]);
+        }
     }
-
 
     scan_no_++;
 

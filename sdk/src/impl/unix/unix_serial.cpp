@@ -657,7 +657,16 @@ struct serial_struct {
 			}
 		}
 
+		MillisecondTimer total_timeout(timeout);
+
 		while(is_open_){
+			int64_t timeout_remaining_ms = total_timeout.remaining();
+			// Only consider the timeout if it's not the first iteration of the loop
+			// otherwise a timeout of 0 won't be allowed through
+			if ((timeout_remaining_ms <= 0)) {
+				// Timed out
+				return -1;
+			}
 			/* Do the select */
 			int n = ::select(max_fd, &input_set, NULL, NULL, &timeout_val);
 

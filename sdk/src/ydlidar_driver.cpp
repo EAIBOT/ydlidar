@@ -44,7 +44,7 @@ namespace ydlidar{
 		}
 	}
 
-    result_t YDlidarDriver::connect(const char * port_path, uint32_t baudrate) {
+	result_t YDlidarDriver::connect(const char * port_path, uint32_t baudrate) {
 		_baudrate = baudrate;
 		if(!_serial){
 			_serial = new serial::Serial(port_path, _baudrate, serial::Timeout::simpleTimeout(DEFAULT_TIMEOUT));
@@ -86,7 +86,7 @@ namespace ydlidar{
 		}
 	}
 
-    result_t YDlidarDriver::startMotor() {
+	result_t YDlidarDriver::startMotor() {
 		ScopedLocker l(_lock);
 		if(isSupportMotorCtrl){
 			setDTR();
@@ -98,7 +98,7 @@ namespace ydlidar{
 		return RESULT_OK;
 	}
 
-    result_t YDlidarDriver::stopMotor() {
+	result_t YDlidarDriver::stopMotor() {
 		ScopedLocker l(_lock);
 		if(isSupportMotorCtrl){
 			clearDTR();
@@ -134,7 +134,7 @@ namespace ydlidar{
 	}
 
 
-    result_t YDlidarDriver::sendCommand(uint8_t cmd, const void * payload, size_t payloadsize) {
+	result_t YDlidarDriver::sendCommand(uint8_t cmd, const void * payload, size_t payloadsize) {
 		uint8_t pkt_header[10];
 		cmd_packet * header = reinterpret_cast<cmd_packet * >(pkt_header);
 		uint8_t checksum = 0;
@@ -169,7 +169,7 @@ namespace ydlidar{
 		return RESULT_OK;
 	}
 
-    result_t YDlidarDriver::sendData(const uint8_t * data, size_t size) {
+	result_t YDlidarDriver::sendData(const uint8_t * data, size_t size) {
 		if (!isConnected) {
 			return RESULT_FAIL;
 		}
@@ -180,15 +180,15 @@ namespace ydlidar{
 		return _serial->write(data, size);
 	}
 
-    result_t YDlidarDriver::getData(uint8_t * data, size_t size) {
+	result_t YDlidarDriver::getData(uint8_t * data, size_t size) {
 		if (!isConnected) {
 			return RESULT_FAIL;
 		}
-        result_t ans = _serial->read(data, size);
+		result_t ans = _serial->read(data, size);
 		return ans;
 	}
 
-    result_t YDlidarDriver::waitResponseHeader(lidar_ans_header * header, uint32_t timeout) {
+	result_t YDlidarDriver::waitResponseHeader(lidar_ans_header * header, uint32_t timeout) {
 		int  recvPos = 0;
 		uint32_t startTs = getms();
 		uint8_t  recvBuffer[sizeof(lidar_ans_header)];
@@ -199,8 +199,8 @@ namespace ydlidar{
 			size_t remainSize = sizeof(lidar_ans_header) - recvPos;
 			size_t recvSize;
 
-            result_t ans = waitForData(remainSize, timeout - waitTime, &recvSize);
-            if (ans != RESULT_OK){
+			result_t ans = waitForData(remainSize, timeout - waitTime, &recvSize);
+			if (ans != RESULT_OK){
 				return ans;
 			}
 
@@ -236,7 +236,7 @@ namespace ydlidar{
 		return RESULT_FAIL;
 	}
 
-    result_t YDlidarDriver::waitForData(size_t data_count, uint32_t timeout, size_t * returned_size) {
+	result_t YDlidarDriver::waitForData(size_t data_count, uint32_t timeout, size_t * returned_size) {
 		size_t length = 0;
 		if (returned_size==NULL) {
 			returned_size=(size_t *)&length;
@@ -244,156 +244,18 @@ namespace ydlidar{
 		return _serial->waitfordata(data_count, timeout, returned_size);
 	}
 
-    result_t YDlidarDriver::getHealth(device_health & health, uint32_t timeout) {
-        result_t ans;
-		if (!isConnected) {
-			return RESULT_FAIL;
-		}
-
-		disableDataGrabbing();
-		{
-			ScopedLocker l(_lock);
-			if ((ans = sendCommand(LIDAR_CMD_GET_DEVICE_HEALTH)) != RESULT_OK) {
-				return ans;
-			}
-			lidar_ans_header response_header;
-			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
-				return ans;
-			}
-
-			if (response_header.type != LIDAR_ANS_TYPE_DEVHEALTH) {
-				return RESULT_FAIL;
-			}
-
-			if (response_header.size < sizeof(device_health)) {
-				return RESULT_FAIL;
-			}
-
-			if (waitForData(response_header.size, timeout) != RESULT_OK) {
-				return RESULT_FAIL;
-			}
-
-			getData(reinterpret_cast<uint8_t *>(&health), sizeof(health));
-		}
-		return RESULT_OK;
-	}
-
-
-    result_t YDlidarDriver::getDeviceInfo(device_info & info, uint32_t timeout) {
-        result_t  ans;
-		if (!isConnected) {
-			return RESULT_FAIL;
-		}
-
-		disableDataGrabbing();
-		{
-			ScopedLocker l(_lock);
-			if ((ans = sendCommand(LIDAR_CMD_GET_DEVICE_INFO)) != RESULT_OK) {
-				return ans;
-			}
-
-			lidar_ans_header response_header;
-			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
-				return ans;
-			}
-
-			if (response_header.type != LIDAR_ANS_TYPE_DEVINFO) {
-				return RESULT_FAIL;
-			}
-
-			if (response_header.size < sizeof(lidar_ans_header)) {
-				return RESULT_FAIL;
-			}
-
-			if (waitForData(response_header.size, timeout) != RESULT_OK) {
-				return RESULT_FAIL;
-			}
-			getData(reinterpret_cast<uint8_t *>(&info), sizeof(info));
-		}
-
-		return RESULT_OK;
-	}
-
-
-	void YDlidarDriver::setIntensities(const bool isintensities){
-		m_intensities = isintensities;
-		if(m_intensities){
-			PackageSampleBytes = 3;
-		}else{
-			PackageSampleBytes = 2;
-		}
-	}
-
-    result_t YDlidarDriver::startScan(bool force, uint32_t timeout ) {
-        result_t ans;
-		if (!isConnected) {
-			return RESULT_FAIL;
-		}
-		if (isScanning) {
-			return RESULT_OK;
-		}
-
-		stop();   
-		startMotor();
-
-		{
-			ScopedLocker l(_lock);
-			if ((ans = sendCommand(force?LIDAR_CMD_FORCE_SCAN:LIDAR_CMD_SCAN)) != RESULT_OK) {
-				return ans;
-			}
-
-			lidar_ans_header response_header;
-			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
-				return ans;
-			}
-
-			if (response_header.type != LIDAR_ANS_TYPE_MEASUREMENT) {
-				return RESULT_FAIL;
-			}
-
-			if (response_header.size < sizeof(node_info)) {
-				return RESULT_FAIL;
-			}
-			isScanning = true;
-			ans = this->createThread();
-			return ans;
-		}
-		return RESULT_OK;
-	}
-
-    result_t YDlidarDriver::createThread() {
-		_thread = CLASS_THREAD(YDlidarDriver, cacheScanData);
-        if (_thread.getHandle() == 0) {
-			return RESULT_FAIL;
-		}
-
-		return RESULT_OK;
-	}
-
-    result_t YDlidarDriver::stop() {
-		disableDataGrabbing();
-		{
-			ScopedLocker l(_lock);
-			sendCommand(LIDAR_CMD_FORCE_STOP);
-		}
-
-		stopMotor();
-
-		return RESULT_OK;
-	}
-
-    int YDlidarDriver::cacheScanData() {
+	int YDlidarDriver::cacheScanData() {
 		node_info      local_buf[128];
 		size_t         count = 128;
 		node_info      local_scan[MAX_SCAN_NODES];
 		size_t         scan_count = 0;
-        result_t            ans;
+		result_t            ans;
 		memset(local_scan, 0, sizeof(local_scan));
 		waitScanData(local_buf, count);
 
 		while(isScanning) {
 			if ((ans=waitScanData(local_buf, count)) != RESULT_OK) {
-                if (ans != RESULT_TIMEOUT) {
+				if (ans != RESULT_TIMEOUT) {
 					fprintf(stderr, "exit scanning thread!!\n");
 					{
 						ScopedLocker l(_scanning_lock);
@@ -427,7 +289,7 @@ namespace ydlidar{
 		return RESULT_OK;
 	}
 
-    result_t YDlidarDriver::waitPackage(node_info * node, uint32_t timeout) {
+	result_t YDlidarDriver::waitPackage(node_info * node, uint32_t timeout) {
 		int recvPos = 0;
 		uint32_t startTs = getms();
 		uint32_t size = (m_intensities)?sizeof(node_package):sizeof(node_packages);
@@ -439,8 +301,8 @@ namespace ydlidar{
 		static node_packages packages;
 
 		static uint16_t package_Sample_Index = 0;
-		static float IntervalSampleAngle = 0;
-		static float IntervalSampleAngle_LastPackage = 0;
+		static float IntervalSampleAngle = 0.0;
+		static float IntervalSampleAngle_LastPackage = 0.0;
 		static uint16_t FirstSampleAngle = 0;
 		static uint16_t LastSampleAngle = 0;
 		static uint16_t CheckSun = 0;
@@ -450,6 +312,8 @@ namespace ydlidar{
 		static uint16_t LastSampleAngleCal = 0;
 		static bool CheckSunResult = true;
 		static uint16_t Valu8Tou16 = 0;
+
+		uint64_t us;
 
 		uint8_t *packageBuffer = (m_intensities)?(uint8_t*)&package.package_Head:(uint8_t*)&packages.package_Head;
 		uint8_t  package_Sample_Num = 0;
@@ -463,7 +327,7 @@ namespace ydlidar{
 			while ((waitTime=getms() - startTs) <= timeout) {
 				size_t remainSize = PackagePaidBytes - recvPos;
 				size_t recvSize;
-                result_t ans = waitForData(remainSize, timeout-waitTime, &recvSize);
+				result_t ans = waitForData(remainSize, timeout-waitTime, &recvSize);
 				if (ans != RESULT_OK){
 					delete[] recvBuffer;
 					return ans;
@@ -472,6 +336,15 @@ namespace ydlidar{
 				if (recvSize > remainSize){
 					recvSize = remainSize;
 				}
+
+#if defined(_WIN32)
+				us = getus();
+#else
+				timespec start;
+				clock_gettime(CLOCK_REALTIME, &start);
+				us  = (uint64_t)(start.tv_sec*1000000000LL + start.tv_nsec);
+#endif
+
 
 				getData(recvBuffer, recvSize);
 
@@ -570,7 +443,7 @@ namespace ydlidar{
 				while ((waitTime=getms() - startTs) <= timeout) {
 					size_t remainSize = package_Sample_Num*PackageSampleBytes - recvPos;
 					size_t recvSize;
-                    result_t ans =waitForData(remainSize, timeout-waitTime, &recvSize);
+					result_t ans =waitForData(remainSize, timeout-waitTime, &recvSize);
 					if (ans != RESULT_OK){
 						delete[] recvBuffer;
 						return ans;
@@ -668,6 +541,11 @@ namespace ydlidar{
 			(*node).distance_q2 = 0;
 		}
 
+		if((*node).sync_quality&LIDAR_RESP_MEASUREMENT_SYNCBIT){
+			m_us = us;
+		}
+		(*node).stamp = m_us;
+
 		package_Sample_Index++;
 		uint8_t nowPackageNum;
 		if(m_intensities){
@@ -682,7 +560,7 @@ namespace ydlidar{
 		return RESULT_OK;
 	}
 
-    result_t YDlidarDriver::waitScanData(node_info * nodebuffer, size_t & count, uint32_t timeout) {
+	result_t YDlidarDriver::waitScanData(node_info * nodebuffer, size_t & count, uint32_t timeout) {
 		if (!isConnected) {
 			count = 0;
 			return RESULT_FAIL;
@@ -691,7 +569,7 @@ namespace ydlidar{
 		size_t     recvNodeCount =  0;
 		uint32_t   startTs = getms();
 		uint32_t   waitTime;
-        result_t ans;
+		result_t ans;
 
 		while ((waitTime = getms() - startTs) <= timeout && recvNodeCount < count) {
 			node_info node;
@@ -709,7 +587,7 @@ namespace ydlidar{
 	}
 
 
-    result_t YDlidarDriver::grabScanData(node_info * nodebuffer, size_t & count, uint32_t timeout) {
+	result_t YDlidarDriver::grabScanData(node_info * nodebuffer, size_t & count, uint32_t timeout) {
 		switch (_dataEvent.wait(timeout)) {
 		case Event::EVENT_TIMEOUT:
 			count = 0;
@@ -745,7 +623,7 @@ namespace ydlidar{
 		}
 	}
 
-    result_t YDlidarDriver::ascendScanData(node_info * nodebuffer, size_t count) {
+	result_t YDlidarDriver::ascendScanData(node_info * nodebuffer, size_t count) {
 		float inc_origin_angle = (float)360.0/count;
 		node_info *tmpbuffer = new node_info[count];
 		int i = 0;
@@ -819,10 +697,163 @@ namespace ydlidar{
 		return RESULT_OK;
 	}
 
+	/************************************************************************/
+	/* get health state of lidar                                            */
+	/************************************************************************/
+	result_t YDlidarDriver::getHealth(device_health & health, uint32_t timeout) {
+		result_t ans;
+		if (!isConnected) {
+			return RESULT_FAIL;
+		}
 
-    result_t YDlidarDriver::reset(uint32_t timeout) {
-        UNUSED(timeout);
-        result_t ans;
+		disableDataGrabbing();
+		{
+			ScopedLocker l(_lock);
+			if ((ans = sendCommand(LIDAR_CMD_GET_DEVICE_HEALTH)) != RESULT_OK) {
+				return ans;
+			}
+			lidar_ans_header response_header;
+			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
+				return ans;
+			}
+
+			if (response_header.type != LIDAR_ANS_TYPE_DEVHEALTH) {
+				return RESULT_FAIL;
+			}
+
+			if (response_header.size < sizeof(device_health)) {
+				return RESULT_FAIL;
+			}
+
+			if (waitForData(response_header.size, timeout) != RESULT_OK) {
+				return RESULT_FAIL;
+			}
+
+			getData(reinterpret_cast<uint8_t *>(&health), sizeof(health));
+		}
+		return RESULT_OK;
+	}
+
+	/************************************************************************/
+	/* get device info of lidar                                             */
+	/************************************************************************/
+	result_t YDlidarDriver::getDeviceInfo(device_info & info, uint32_t timeout) {
+		result_t  ans;
+		if (!isConnected) {
+			return RESULT_FAIL;
+		}
+
+		disableDataGrabbing();
+		{
+			ScopedLocker l(_lock);
+			if ((ans = sendCommand(LIDAR_CMD_GET_DEVICE_INFO)) != RESULT_OK) {
+				return ans;
+			}
+
+			lidar_ans_header response_header;
+			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
+				return ans;
+			}
+
+			if (response_header.type != LIDAR_ANS_TYPE_DEVINFO) {
+				return RESULT_FAIL;
+			}
+
+			if (response_header.size < sizeof(lidar_ans_header)) {
+				return RESULT_FAIL;
+			}
+
+			if (waitForData(response_header.size, timeout) != RESULT_OK) {
+				return RESULT_FAIL;
+			}
+			getData(reinterpret_cast<uint8_t *>(&info), sizeof(info));
+		}
+
+		return RESULT_OK;
+	}
+
+	/************************************************************************/
+	/* the set to signal quality                                            */
+	/************************************************************************/
+	void YDlidarDriver::setIntensities(const bool isintensities){
+		m_intensities = isintensities;
+		if(m_intensities){
+			PackageSampleBytes = 3;
+		}else{
+			PackageSampleBytes = 2;
+		}
+	}
+
+	/************************************************************************/
+	/*  start to scan                                                       */
+	/************************************************************************/
+	result_t YDlidarDriver::startScan(bool force, uint32_t timeout ) {
+		result_t ans;
+		if (!isConnected) {
+			return RESULT_FAIL;
+		}
+		if (isScanning) {
+			return RESULT_OK;
+		}
+
+		stop();   
+		startMotor();
+
+		{
+			ScopedLocker l(_lock);
+			if ((ans = sendCommand(force?LIDAR_CMD_FORCE_SCAN:LIDAR_CMD_SCAN)) != RESULT_OK) {
+				return ans;
+			}
+
+			lidar_ans_header response_header;
+			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
+				return ans;
+			}
+
+			if (response_header.type != LIDAR_ANS_TYPE_MEASUREMENT) {
+				return RESULT_FAIL;
+			}
+
+			if (response_header.size < (sizeof(node_info)-sizeof(uint64_t))) {
+				return RESULT_FAIL;
+			}
+			isScanning = true;
+			ans = this->createThread();
+			return ans;
+		}
+		return RESULT_OK;
+	}
+
+	result_t YDlidarDriver::createThread() {
+		_thread = CLASS_THREAD(YDlidarDriver, cacheScanData);
+		if (_thread.getHandle() == 0) {
+			return RESULT_FAIL;
+		}
+
+		return RESULT_OK;
+	}
+
+	/************************************************************************/
+	/*   stop scan                                                   */
+	/************************************************************************/
+	result_t YDlidarDriver::stop() {
+		disableDataGrabbing();
+		{
+			ScopedLocker l(_lock);
+			sendCommand(LIDAR_CMD_STOP);
+		}
+
+		stopMotor();
+
+		return RESULT_OK;
+	}
+
+	/************************************************************************/
+	/*  reset device                                                        */
+	/************************************************************************/
+	result_t YDlidarDriver::reset(uint32_t timeout) {
+		UNUSED(timeout);
+		result_t ans;
 		if (!isConnected){
 			return RESULT_FAIL;
 		}
@@ -833,6 +864,9 @@ namespace ydlidar{
 		return RESULT_OK;
 	}
 
+	/************************************************************************/
+	/* get the current scan frequency of lidar                              */
+	/************************************************************************/
 	result_t YDlidarDriver::getScanFrequency(scan_frequency & frequency, uint32_t timeout){
 		result_t  ans;
 		if (!isConnected) {
@@ -868,6 +902,9 @@ namespace ydlidar{
 		return RESULT_OK;
 	}
 
+	/************************************************************************/
+	/* add the scan frequency by 1Hz each time                              */
+	/************************************************************************/
 	result_t YDlidarDriver::setScanFrequencyAdd(scan_frequency & frequency, uint32_t timeout){
 		result_t  ans;
 		if (!isConnected) {
@@ -903,6 +940,9 @@ namespace ydlidar{
 		return RESULT_OK;
 	}
 
+	/************************************************************************/
+	/* decrease the scan frequency by 1Hz each time                         */
+	/************************************************************************/
 	result_t YDlidarDriver::setScanFrequencyDis(scan_frequency & frequency, uint32_t timeout){
 		result_t  ans;
 		if (!isConnected) {
@@ -938,6 +978,9 @@ namespace ydlidar{
 		return RESULT_OK;
 	}
 
+	/************************************************************************/
+	/* add the scan frequency by 0.1Hz each time                            */
+	/************************************************************************/
 	result_t YDlidarDriver::setScanFrequencyAddMic(scan_frequency & frequency, uint32_t timeout){
 		result_t  ans;
 		if (!isConnected) {
@@ -973,6 +1016,9 @@ namespace ydlidar{
 		return RESULT_OK;
 	}
 
+	/************************************************************************/
+	/* decrease the scan frequency by 0.1Hz each time                       */
+	/************************************************************************/
 	result_t YDlidarDriver::setScanFrequencyDisMic(scan_frequency & frequency, uint32_t timeout){
 		result_t  ans;
 		if (!isConnected) {
@@ -1008,8 +1054,11 @@ namespace ydlidar{
 		return RESULT_OK;
 	}
 
+	/************************************************************************/
+	/*  get the sampling rate of lidar                                      */
+	/************************************************************************/
 	result_t YDlidarDriver::getSamplingRate(sampling_rate & rate, uint32_t timeout){
-        result_t  ans;
+		result_t  ans;
 		if (!isConnected) {
 			return RESULT_FAIL;
 		}
@@ -1044,9 +1093,11 @@ namespace ydlidar{
 		return RESULT_OK;
 	}
 
-
-    result_t YDlidarDriver::setSamplingRate(sampling_rate & rate, uint32_t timeout){
-        result_t  ans;
+	/************************************************************************/
+	/*  the set to sampling rate                                            */
+	/************************************************************************/
+	result_t YDlidarDriver::setSamplingRate(sampling_rate & rate, uint32_t timeout){
+		result_t  ans;
 		if (!isConnected) {
 			return RESULT_FAIL;
 		}
@@ -1082,6 +1133,7 @@ namespace ydlidar{
 	const std::string YDlidarDriver::getSDKVersion(){
 		return SDKVerision;
 	}
+
 
 	result_t YDlidarDriver::setRotationPositive(scan_rotation & roation, uint32_t timeout){
 		result_t  ans;
@@ -1148,6 +1200,302 @@ namespace ydlidar{
 		}
 		return RESULT_OK;
 	}
+
+	/************************************************************************/
+	/* enable lower power                                                   */
+	/************************************************************************/
+	result_t YDlidarDriver::enableLowerPower(function_state & state, uint32_t timeout){
+		result_t  ans;
+		if (!isConnected) {
+			return RESULT_FAIL;
+		}
+		disableDataGrabbing();
+		{
+			ScopedLocker l(_lock);
+			if ((ans = sendCommand(LIDAR_CMD_ENABLE_LOW_POWER)) != RESULT_OK) {
+				return ans;
+			}
+
+			lidar_ans_header response_header;
+			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
+				return ans;
+			}
+
+			if (response_header.type != LIDAR_ANS_TYPE_DEVINFO) {
+				return RESULT_FAIL;
+			}
+
+			if (response_header.size != 1) {
+				return RESULT_FAIL;
+			}
+
+			if (waitForData(response_header.size, timeout) != RESULT_OK) {
+				return RESULT_FAIL;
+			}
+			getData(reinterpret_cast<uint8_t *>(&state), sizeof(state));
+		}
+		return RESULT_OK;
+	}
+
+	/************************************************************************/
+	/*  disable lower power                                                 */
+	/************************************************************************/
+	result_t YDlidarDriver::disableLowerPower(function_state & state, uint32_t timeout){
+		result_t  ans;
+		if (!isConnected) {
+			return RESULT_FAIL;
+		}
+		disableDataGrabbing();
+		{
+			ScopedLocker l(_lock);
+			if ((ans = sendCommand(LIDAR_CMD_DISABLE_LOW_POWER)) != RESULT_OK) {
+				return ans;
+			}
+
+			lidar_ans_header response_header;
+			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
+				return ans;
+			}
+
+			if (response_header.type != LIDAR_ANS_TYPE_DEVINFO) {
+				return RESULT_FAIL;
+			}
+
+			if (response_header.size != 1) {
+				return RESULT_FAIL;
+			}
+
+			if (waitForData(response_header.size, timeout) != RESULT_OK) {
+				return RESULT_FAIL;
+			}
+			getData(reinterpret_cast<uint8_t *>(&state), sizeof(state));
+		}
+		return RESULT_OK;
+	}
+
+	/************************************************************************/
+	/* get the state of motor                                               */
+	/************************************************************************/
+	result_t YDlidarDriver::getMotorState(function_state & state, uint32_t timeout){
+		result_t  ans;
+		if (!isConnected) {
+			return RESULT_FAIL;
+		}
+		disableDataGrabbing();
+		{
+			ScopedLocker l(_lock);
+			if ((ans = sendCommand(LIDAR_CMD_STATE_MODEL_MOTOR)) != RESULT_OK) {
+				return ans;
+			}
+
+			lidar_ans_header response_header;
+			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
+				return ans;
+			}
+
+			if (response_header.type != LIDAR_ANS_TYPE_DEVINFO) {
+				return RESULT_FAIL;
+			}
+
+			if (response_header.size != 1) {
+				return RESULT_FAIL;
+			}
+
+			if (waitForData(response_header.size, timeout) != RESULT_OK) {
+				return RESULT_FAIL;
+			}
+			getData(reinterpret_cast<uint8_t *>(&state), sizeof(state));
+		}
+		return RESULT_OK;
+	}
+
+	/************************************************************************/
+	/* enable constant frequency                                            */
+	/************************************************************************/
+	result_t YDlidarDriver::enableConstFreq(function_state & state, uint32_t timeout){
+		result_t  ans;
+		if (!isConnected) {
+			return RESULT_FAIL;
+		}
+		disableDataGrabbing();
+		{
+			ScopedLocker l(_lock);
+			if ((ans = sendCommand(LIDAR_CMD_ENABLE_CONST_FREQ)) != RESULT_OK) {
+				return ans;
+			}
+
+			lidar_ans_header response_header;
+			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
+				return ans;
+			}
+
+			if (response_header.type != LIDAR_ANS_TYPE_DEVINFO) {
+				return RESULT_FAIL;
+			}
+
+			if (response_header.size != 1) {
+				return RESULT_FAIL;
+			}
+
+			if (waitForData(response_header.size, timeout) != RESULT_OK) {
+				return RESULT_FAIL;
+			}
+			getData(reinterpret_cast<uint8_t *>(&state), sizeof(state));
+		}
+		return RESULT_OK;
+	}
+
+	/************************************************************************/
+	/* disable constant frequency                                           */
+	/************************************************************************/
+	result_t YDlidarDriver::disableConstFreq(function_state & state, uint32_t timeout){
+		result_t  ans;
+		if (!isConnected) {
+			return RESULT_FAIL;
+		}
+		disableDataGrabbing();
+		{
+			ScopedLocker l(_lock);
+			if ((ans = sendCommand(LIDAR_CMD_DISABLE_CONST_FREQ)) != RESULT_OK) {
+				return ans;
+			}
+
+			lidar_ans_header response_header;
+			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
+				return ans;
+			}
+
+			if (response_header.type != LIDAR_ANS_TYPE_DEVINFO) {
+				return RESULT_FAIL;
+			}
+
+			if (response_header.size != 1) {
+				return RESULT_FAIL;
+			}
+
+			if (waitForData(response_header.size, timeout) != RESULT_OK) {
+				return RESULT_FAIL;
+			}
+			getData(reinterpret_cast<uint8_t *>(&state), sizeof(state));
+		}
+		return RESULT_OK;
+	}
+
+	/************************************************************************/
+	/*  the set to low power for S4 which has signal quality                */
+	/************************************************************************/
+	result_t YDlidarDriver::setLowPower(scan_power& low_power, uint32_t timeout){
+		result_t  ans;
+		if (!isConnected) {
+			return RESULT_FAIL;
+		}
+		disableDataGrabbing();
+		{
+			ScopedLocker l(_lock);
+			if ((ans = sendCommand(LIDAR_CMD_LOW_POWER)) != RESULT_OK) {
+				return ans;
+			}
+
+			lidar_ans_header response_header;
+			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
+				return ans;
+			}
+
+			if (response_header.type != LIDAR_ANS_TYPE_DEVINFO) {
+				return RESULT_FAIL;
+			}
+
+			if (response_header.size != 1) {
+				return RESULT_FAIL;
+			}
+
+			if (waitForData(response_header.size, timeout) != RESULT_OK) {
+				return RESULT_FAIL;
+			}
+			getData(reinterpret_cast<uint8_t *>(&low_power), sizeof(low_power));
+		}
+		return RESULT_OK;
+
+
+	}
+
+	/************************************************************************/
+	/*  add scan power for S4 which has signal quality                      */
+	/************************************************************************/
+	result_t YDlidarDriver::setScanPowerAdd(scan_power & power, uint32_t timeout){
+		result_t  ans;
+		if (!isConnected) {
+			return RESULT_FAIL;
+		}
+		disableDataGrabbing();
+		{
+			ScopedLocker l(_lock);
+			if ((ans = sendCommand(LIDAR_CMD_ADD_POWER)) != RESULT_OK) {
+				return ans;
+			}
+
+			lidar_ans_header response_header;
+			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
+				return ans;
+			}
+
+			if (response_header.type != LIDAR_ANS_TYPE_DEVINFO) {
+				return RESULT_FAIL;
+			}
+
+			if (response_header.size != 1) {
+				return RESULT_FAIL;
+			}
+
+			if (waitForData(response_header.size, timeout) != RESULT_OK) {
+				return RESULT_FAIL;
+			}
+			getData(reinterpret_cast<uint8_t *>(&power), sizeof(power));
+		}
+		return RESULT_OK;
+
+	}
+
+	/************************************************************************/
+	/*  decrease scan power for S4 which has signal quality                 */
+	/************************************************************************/
+	result_t YDlidarDriver::setScanPowerDis(scan_power & power, uint32_t timeout)
+	{
+		result_t  ans;
+		if (!isConnected) {
+			return RESULT_FAIL;
+		}
+		disableDataGrabbing();
+		{
+			ScopedLocker l(_lock);
+			if ((ans = sendCommand(LIDAR_CMD_DIS_POWER)) != RESULT_OK) {
+				return ans;
+			}
+
+			lidar_ans_header response_header;
+			if ((ans = waitResponseHeader(&response_header, timeout)) != RESULT_OK) {
+				return ans;
+			}
+
+			if (response_header.type != LIDAR_ANS_TYPE_DEVINFO) {
+				return RESULT_FAIL;
+			}
+
+			if (response_header.size != 1) {
+				return RESULT_FAIL;
+			}
+
+			if (waitForData(response_header.size, timeout) != RESULT_OK) {
+				return RESULT_FAIL;
+			}
+			getData(reinterpret_cast<uint8_t *>(&power), sizeof(power));
+		}
+		return RESULT_OK;
+
+
+	}
+
+
 
 
 }

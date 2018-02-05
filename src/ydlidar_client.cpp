@@ -2,8 +2,8 @@
  *  YDLIDAR SYSTEM
  *  YDLIDAR ROS Node Client 
  *
- *  Copyright 2015 - 2017 EAI TEAM
- *  http://www.eaibot.com
+ *  Copyright 2015 - 2018 EAI TEAM
+ *  http://www.ydlidar.com
  * 
  */
 

@@ -1,6 +1,4 @@
 #pragma once
-
-
 #include "../sdk/include/ydlidar_driver.h"
 #include "../sdk/src/common.h"
 #include <exception>

@@ -48,6 +48,16 @@
 #define LIDAR_STATUS_WARNING               0x1
 #define LIDAR_STATUS_ERROR                 0x2
 
+#define LIDAR_CMD_ENABLE_LOW_POWER         0x01
+#define LIDAR_CMD_DISABLE_LOW_POWER        0x02
+#define LIDAR_CMD_STATE_MODEL_MOTOR        0x05
+#define LIDAR_CMD_ENABLE_CONST_FREQ        0x0E
+#define LIDAR_CMD_DISABLE_CONST_FREQ       0x0F
+
+#define LIDAR_CMD_LOW_POWER        	    0x95
+#define LIDAR_CMD_ADD_POWER        	    0x96
+#define LIDAR_CMD_DIS_POWER        	    0x97
+
 #define PackageSampleMaxLngth 0x100
 typedef enum {
 	CT_Normal = 0,
@@ -68,6 +78,7 @@ struct node_info {
 	uint8_t    sync_quality;
 	uint16_t   angle_q6_checkbit;
 	uint16_t   distance_q2;
+	uint64_t   stamp;
 } __attribute__((packed)) ;
 
 struct PackageNode {
@@ -118,6 +129,14 @@ struct scan_frequency {
 
 struct scan_rotation {
 	uint8_t rotation;
+} __attribute__((packed))  ;
+
+struct scan_power {
+	uint8_t power;
+} __attribute__((packed))  ;
+
+struct function_state {
+	uint8_t state;
 } __attribute__((packed))  ;
 
 struct cmd_packet {
@@ -180,7 +199,6 @@ struct LaserScan {
 using namespace std;
 using namespace serial;
 
-
 namespace ydlidar{
 
 	class YDlidarDriver
@@ -223,6 +241,16 @@ namespace ydlidar{
 		result_t setSamplingRate(sampling_rate & rate, uint32_t timeout = DEFAULT_TIMEOUT);
 		result_t setRotationPositive(scan_rotation & rotation, uint32_t timeout = DEFAULT_TIMEOUT);
 		result_t setRotationInversion(scan_rotation & rotation, uint32_t timeout = DEFAULT_TIMEOUT);
+
+		result_t enableLowerPower(function_state & state, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t disableLowerPower(function_state & state, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t getMotorState(function_state & state, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t enableConstFreq(function_state & state, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t disableConstFreq(function_state & state, uint32_t timeout = DEFAULT_TIMEOUT);
+
+		result_t setLowPower(scan_power& low_power, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t setScanPowerAdd(scan_power & power, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t setScanPowerDis(scan_power & power, uint32_t timeout = DEFAULT_TIMEOUT);
 
 	protected:
 		YDlidarDriver();
@@ -273,6 +301,7 @@ namespace ydlidar{
 		int _sampling_rate;
 		uint32_t _baudrate;
 		bool isSupportMotorCtrl;
+		uint64_t m_us;
 
 	};
 }

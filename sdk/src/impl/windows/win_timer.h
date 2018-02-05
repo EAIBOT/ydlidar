@@ -15,8 +15,9 @@
 
 namespace impl{
 	void HPtimer_reset();
-	uint32_t getHDTimer();
+	uint32_t getHDTimer(uint32_t div = 1000);
 }
 
 #define getms()   impl::getHDTimer()
+#define getus()   impl::getHDTimer(1)
 

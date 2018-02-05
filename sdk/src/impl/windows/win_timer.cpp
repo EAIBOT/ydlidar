@@ -9,15 +9,16 @@ namespace impl{
 
 	void HPtimer_reset() {
 		BOOL ans=QueryPerformanceFrequency(&_current_freq);
-		_current_freq.QuadPart/=1000;
+		//_current_freq.QuadPart/=1000;
 	}
 
-	uint32_t getHDTimer() {
+	uint32_t getHDTimer(uint32_t div) {
 		LARGE_INTEGER current;
 		QueryPerformanceCounter(&current);
 
-		return (uint32_t)(current.QuadPart/_current_freq.QuadPart);
+		return (uint32_t)(current.QuadPart/(_current_freq.QuadPart/div));
 	}
+
 
 	BEGIN_STATIC_CODE(timer_cailb) {
 		HPtimer_reset();

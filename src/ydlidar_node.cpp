@@ -2,8 +2,8 @@
  *  YDLIDAR SYSTEM
  *  YDLIDAR ROS Node Client 
  *
- *  Copyright 2015 - 2017 EAI TEAM
- *  http://www.eaibot.com
+ *  Copyright 2015 - 2018 EAI TEAM
+ *  http://www.ydlidar.com
  * 
  */
 
@@ -15,12 +15,11 @@
 #include <string>
 #include <signal.h>
 
-#define DELAY_SECONDS 26
+#define DELAY_SECONDS 4
 #define DEG2RAD(x) ((x)*M_PI/180.)
 
 using namespace ydlidar;
 
-static bool flag = true;
 static int nodes_count = 720;
 static float each_angle = 0.5;
 
@@ -35,8 +34,6 @@ void publish_scan(ros::Publisher *pub,  node_info *nodes,  size_t node_count, ro
     scan_msg.ranges.resize(counts);
     scan_msg.intensities.resize(counts);
 
-    float nodes_array[node_count];
-    float quality_array[node_count];
     float range = 0.0;
     float intensity = 0.0;
     int index = 0;
@@ -47,38 +44,33 @@ void publish_scan(ros::Publisher *pub,  node_info *nodes,  size_t node_count, ro
         if(i<node_count/2){
 	    index = node_count/2-1-i;	    
         }else{
-	    index =node_count-1-(i-node_count/2);
+            index =node_count-1-(i-node_count/2);
         }
 
         if(ignore_array.size() != 0){
-	    float angle = (float)((nodes[i].angle_q6_checkbit >> LIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)/64.0f);
+            float angle = (float)((nodes[i].angle_q6_checkbit >> LIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)/64.0f);
             if(angle>180){
                 angle=360-angle;
             }else{
                 angle=-angle;
             }
-	    for(uint16_t j = 0; j < ignore_array.size();j = j+2){
+            for(uint16_t j = 0; j < ignore_array.size();j = j+2){
                 if((ignore_array[j] < angle) && (angle <= ignore_array[j+1])){
-		   range = 0.0;
-		   break;
+                    range = 0.0;
+		    break;
 		}
 	    }
 	}
 
-	if(range > max_range){
+	if(range > max_range || range < min_range){
 	    range = 0.0;
         }
 
-	if(range < min_range){
-	    range = 0.0;
-        }
-
-	int pos = index - node_start ;
+        int pos = index - node_start ;
         if(0<= pos && pos < counts){
 	    scan_msg.ranges[pos] =  range;
-	    scan_msg.intensities[pos] = intensity;
-	}
-
+            scan_msg.intensities[pos] = intensity;
+        }
     }
 
     scan_msg.header.stamp = start;
@@ -134,10 +126,23 @@ bool getDeviceInfo(std::string port)
                 break;
             case 5:
                 model="G4";
-                _samp_rate=9;
-                nodes_count = 1440;
-                each_angle = 0.25;
                 freq = 7.0;
+                    sampling_rate _rate;
+                    YDlidarDriver::singleton()->getSamplingRate(_rate);
+                    switch(_rate.rate){
+                        case 0:
+                            break;
+                        case 1:
+                            nodes_count = 1440;
+                            each_angle = 0.25;
+			    _samp_rate=8;
+                            break;
+                        case 2:
+                            nodes_count = 1440;
+                            each_angle = 0.25;
+			    _samp_rate=9;
+                            break;
+                    }
                 break;
             case 6:
                 model="X4";
@@ -200,7 +205,6 @@ bool getDeviceHealth()
         } else {
             return true;
         }
-
     } else {
         ROS_ERROR("Error, cannot retrieve YDLIDAR health code: %x", op_result);
         return false;
@@ -208,25 +212,14 @@ bool getDeviceHealth()
 
 }
 
-
-static void Stop(int signo)   
-{   
-    flag = false;
-    signal(signo, SIG_DFL);
-    YDlidarDriver::singleton()->disconnect();
-    printf("[YDLIDAR INFO] Now YDLIDAR is stopping .......\n");
-    YDlidarDriver::done();
-    exit(0);
-     
-} 
-
 int main(int argc, char * argv[]) {
     ros::init(argc, argv, "ydlidar_node"); 
 
     std::string port;
-    int baudrate;
+    int baudrate=115200;
+    std::string model;
     std::string frame_id;
-    bool angle_fixed, intensities_;
+    bool angle_fixed, intensities_,low_power,reversion;
     double angle_max,angle_min;
     result_t op_result;
     std::string list;
@@ -237,16 +230,31 @@ int main(int argc, char * argv[]) {
     ros::Publisher scan_pub = nh.advertise<sensor_msgs::LaserScan>("scan", 1000);
     ros::NodeHandle nh_private("~");
     nh_private.param<std::string>("port", port, "/dev/ydlidar"); 
-    nh_private.param<int>("baudrate", baudrate, 115200); 
+    nh_private.param<std::string>("model", model, "G4"); 
     nh_private.param<std::string>("frame_id", frame_id, "laser_frame");
     nh_private.param<bool>("angle_fixed", angle_fixed, "true");
     nh_private.param<bool>("intensities", intensities_, "false");
+    nh_private.param<bool>("low_power", low_power, "false");
     nh_private.param<double>("angle_max", angle_max , 180);
     nh_private.param<double>("angle_min", angle_min , -180);
     nh_private.param<double>("range_max", max_range , 16.0);
     nh_private.param<double>("range_min", min_range , 0.08);
     nh_private.param<std::string>("ignore_array",list,"");
     ignore_array = split(list ,',');
+
+    if(strcmp(model.c_str() , "X4")==0){
+        baudrate=128000;
+        reversion=false;
+    }else if(strcmp(model.c_str() , "S4")==0){
+        baudrate=115200;
+        reversion=false;
+    }else if(strcmp(model.c_str() , "F4")==0){
+        baudrate=115200;
+        reversion=false;
+    }else if(strcmp(model.c_str() , "G4")==0){
+        baudrate=230400;
+        reversion=true;
+    }
 
     if(ignore_array.size()%2){
         ROS_ERROR_STREAM("ignore array is odd need be even");
@@ -264,15 +272,12 @@ int main(int argc, char * argv[]) {
         return -2;
     }
 
-    signal(SIGINT, Stop); 
-    signal(SIGTERM, Stop);
-
     printf("[YDLIDAR INFO] Current SDK Version: %s\n",YDlidarDriver::singleton()->getSDKVersion().c_str());
 
     op_result = YDlidarDriver::singleton()->connect(port.c_str(), (uint32_t)baudrate);
     if (op_result != RESULT_OK) {
         int seconds=0;
-        while(seconds <= DELAY_SECONDS&&flag){
+        while(seconds <= DELAY_SECONDS){
             sleep(2);
             seconds = seconds + 2;
             YDlidarDriver::singleton()->disconnect();
@@ -298,6 +303,21 @@ int main(int argc, char * argv[]) {
         return -1;
     }
     YDlidarDriver::singleton()->setIntensities(intensities_);
+    if(intensities_){
+	scan_power power;
+	int cnt = 0;
+        while((YDlidarDriver::singleton()->setLowPower(power) == RESULT_OK) && (cnt<3)){
+            if(power.power != low_power){
+                ROS_INFO("set POWER MODEL SUCCESS!!!");
+                break;
+            }
+            cnt++;
+        }
+	if(cnt>=3){
+            ROS_ERROR("set LOW POWER MODEL FALIED!!!");
+	}
+	
+    }
 
     result_t ans=YDlidarDriver::singleton()->startScan();
     if(ans != RESULT_OK){
@@ -311,7 +331,6 @@ int main(int argc, char * argv[]) {
     }
 	
     printf("[YDLIDAR INFO] Now YDLIDAR is scanning ......\n");
-    flag = false;
     ros::Time start_scan_time;
     ros::Time end_scan_time;
     double scan_duration;
@@ -323,14 +342,19 @@ int main(int argc, char * argv[]) {
     while (ros::ok()) {
         try{
             node_info nodes[nodes_count];
-            size_t   count = _countof(nodes);
+            size_t count = _countof(nodes);
 
             start_scan_time = ros::Time::now();
             op_result = YDlidarDriver::singleton()->grabScanData(nodes, count);
             end_scan_time = ros::Time::now();
-            scan_duration = (end_scan_time - start_scan_time).toSec();
-        
+
             if (op_result == RESULT_OK) {
+		if(nodes[0].stamp > 0){
+                    start_scan_time.sec = nodes[0].stamp/1000000000;
+                    start_scan_time.nsec = (nodes[0].stamp%1000000000);
+	    	}
+	    	scan_duration = (end_scan_time - start_scan_time).toSec();
+
                 op_result = YDlidarDriver::singleton()->ascendScanData(nodes, count);
             
                 if (op_result == RESULT_OK) {
@@ -340,6 +364,11 @@ int main(int argc, char * argv[]) {
                         for(size_t i = 0; i < count; i++) {
                             if (nodes[i].distance_q2 != 0) {
                                 float angle = (float)((nodes[i].angle_q6_checkbit >> LIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)/64.0f);
+                                if(reversion){
+                                    angle=angle+180;
+                                    if(angle>=360){ angle=angle-360;}
+                                    nodes[i].angle_q6_checkbit = ((uint16_t)(angle * 64.0f)) << LIDAR_RESP_MEASUREMENT_ANGLE_SHIFT;
+                                }
                                 int inter =(int)( angle / each_angle );
                                 float angle_pre = angle - inter * each_angle;
                                 float angle_next = (inter+1) * each_angle - angle;
@@ -375,16 +404,10 @@ int main(int argc, char * argv[]) {
             ros::spinOnce();
 	}catch(std::exception &e){//
             ROS_ERROR_STREAM("Unhandled Exception: " << e.what() );
-            YDlidarDriver::singleton()->disconnect();
-            printf("[YDLIDAR INFO] Now YDLIDAR is stopping .......\n");
-            YDlidarDriver::done();
-            return 0;
+            break;
 	}catch(...){//anthor exception
             ROS_ERROR("Unhandled Exception:Unknown ");
-            YDlidarDriver::singleton()->disconnect();
-            printf("[YDLIDAR INFO] Now YDLIDAR is stopping .......\n");
-            YDlidarDriver::done();
-            return 0;
+            break;
 	}
     }
 
