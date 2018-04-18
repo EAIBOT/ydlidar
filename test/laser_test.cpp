@@ -221,7 +221,7 @@ void Lasertest::Start() {
                        			 }
                     	  	}
 
-			   publicScanData(all_nodes,start_scan_time,scan_duration,NODE_COUNTS,angle_min_,angle_max_,ignore_array_);
+			   publicScanData(all_nodes,start_scan_time,scan_duration,angle_min_,angle_max_,ignore_array_);
 
 			}
 
@@ -269,18 +269,18 @@ std::vector<int> Lasertest::split(const std::string &s, char delim) {
     return elems;
 }
 
-void Lasertest::publicScanData(node_info *nodes, uint64_t start,double scan_time, size_t node_count, float angle_min, float angle_max,std::vector<int> ignore_array) {
-    fprintf(stdout,"publicScanData: %lud   ,  %i\n",start, (int)node_count);
+void Lasertest::publicScanData(node_info *nodes, uint64_t start,double scan_time, float angle_min, float angle_max,std::vector<int> ignore_array) {
+    fprintf(stdout,"publicScanData: %lud   ,  %i\n",start, (int)NODE_COUNTS);
 
-   float nodes_array[node_count];
-    float quality_array[node_count];
-    for (size_t i = 0; i < node_count; i++) {
-        if(i<node_count/2){
-            nodes_array[node_count/2-1-i] = (float)nodes[i].distance_q2/4.0f/1000;
-            quality_array[node_count/2-1-i] = (float)(nodes[i].sync_quality >> 2);
+   float nodes_array[NODE_COUNTS];
+    float quality_array[NODE_COUNTS];
+    for (size_t i = 0; i < NODE_COUNTS; i++) {
+        if(i<NODE_COUNTS/2){
+            nodes_array[NODE_COUNTS/2-1-i] = (float)nodes[i].distance_q2/4.0f/1000;
+            quality_array[NODE_COUNTS/2-1-i] = (float)(nodes[i].sync_quality >> 2);
         }else{
-            nodes_array[node_count-1-(i-node_count/2)] = (float)nodes[i].distance_q2/4.0f/1000;
-            quality_array[node_count-1-(i-node_count/2)] = (float)(nodes[i].sync_quality >> 2);
+            nodes_array[NODE_COUNTS-1-(i-NODE_COUNTS/2)] = (float)nodes[i].distance_q2/4.0f/1000;
+            quality_array[NODE_COUNTS-1-(i-NODE_COUNTS/2)] = (float)(nodes[i].sync_quality >> 2);
         }
 
         if(ignore_array.size() != 0){
@@ -292,10 +292,10 @@ void Lasertest::publicScanData(node_info *nodes, uint64_t start,double scan_time
             }
 	    for(unsigned int j = 0; j < ignore_array.size();j = j+2){
                 if((ignore_array[j] < angle) && (angle <= ignore_array[j+1])){
-                    if(i<node_count/2){
-                        nodes_array[node_count/2-1-i] = 0;
+                    if(i<NODE_COUNTS/2){
+                        nodes_array[NODE_COUNTS/2-1-i] = 0;
                     }else{
-                        nodes_array[node_count-1-(i-node_count/2)] = 0;
+                        nodes_array[NODE_COUNTS-1-(i-NODE_COUNTS/2)] = 0;
                     }
 		   break;
 		}
@@ -305,7 +305,7 @@ void Lasertest::publicScanData(node_info *nodes, uint64_t start,double scan_time
     }
     
 
-    int counts = node_count*((angle_max-angle_min)/360.0f);
+    int counts =NODE_COUNTS*((angle_max-angle_min)/360.0f);
     int angle_start = 180+angle_min;
     int node_start = node_count*(angle_start/360.0f);
 
