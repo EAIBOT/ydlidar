@@ -1,6 +1,7 @@
 #ifndef YDLIDAR_DRIVER_H
 #define YDLIDAR_DRIVER_H
-
+#include <stdlib.h>
+#include <atomic>
 #include "locker.h"
 #include "serial.h"
 #include "thread.h"
@@ -48,6 +49,20 @@
 #define LIDAR_STATUS_WARNING               0x1
 #define LIDAR_STATUS_ERROR                 0x2
 
+#define LIDAR_CMD_ENABLE_LOW_POWER         0x01
+#define LIDAR_CMD_DISABLE_LOW_POWER        0x02
+#define LIDAR_CMD_STATE_MODEL_MOTOR        0x05
+#define LIDAR_CMD_ENABLE_CONST_FREQ        0x0E
+#define LIDAR_CMD_DISABLE_CONST_FREQ       0x0F
+
+#define LIDAR_CMD_SAVE_SET_EXPOSURE         0x94
+#define LIDAR_CMD_SET_LOW_EXPOSURE          0x95
+#define LIDAR_CMD_ADD_EXPOSURE       	    0x96
+#define LIDAR_CMD_DIS_EXPOSURE       	    0x97
+
+#define LIDAR_CMD_SET_HEART_BEAT        0xD9
+#define LIDAR_CMD_SET_SETPOINTSFORONERINGFLAG  0xae
+
 #define PackageSampleMaxLngth 0x100
 typedef enum {
 	CT_Normal = 0,
@@ -68,6 +83,7 @@ struct node_info {
 	uint8_t    sync_quality;
 	uint16_t   angle_q6_checkbit;
 	uint16_t   distance_q2;
+	uint64_t   stamp;
 } __attribute__((packed)) ;
 
 struct PackageNode {
@@ -118,6 +134,22 @@ struct scan_frequency {
 
 struct scan_rotation {
 	uint8_t rotation;
+} __attribute__((packed))  ;
+
+struct scan_exposure {
+	uint8_t exposure;
+} __attribute__((packed))  ;
+
+struct scan_heart_beat {
+    uint8_t enable;
+} __attribute__((packed));
+
+struct scan_points {
+	uint8_t flag;
+} __attribute__((packed))  ;
+
+struct function_state {
+	uint8_t state;
 } __attribute__((packed))  ;
 
 struct cmd_packet {
@@ -180,7 +212,6 @@ struct LaserScan {
 using namespace std;
 using namespace serial;
 
-
 namespace ydlidar{
 
 	class YDlidarDriver
@@ -201,8 +232,13 @@ namespace ydlidar{
 
 		result_t connect(const char * port_path, uint32_t baudrate);
 		void disconnect();
-		const std::string getSDKVersion();
+		static std::string getSDKVersion();
+		const bool isscanning();
+        const bool isconnected();
 		void setIntensities(const bool isintensities);
+		const bool getHeartBeat();
+        void setHeartBeat(const bool enable);
+        result_t sendHeartBeat();
 		result_t getHealth(device_health & health, uint32_t timeout = DEFAULT_TIMEOUT);
 		result_t getDeviceInfo(device_info & info, uint32_t timeout = DEFAULT_TIMEOUT);
 		result_t startScan(bool force = false, uint32_t timeout = DEFAULT_TIMEOUT) ;
@@ -224,6 +260,19 @@ namespace ydlidar{
 		result_t setRotationPositive(scan_rotation & rotation, uint32_t timeout = DEFAULT_TIMEOUT);
 		result_t setRotationInversion(scan_rotation & rotation, uint32_t timeout = DEFAULT_TIMEOUT);
 
+		result_t enableLowerPower(function_state & state, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t disableLowerPower(function_state & state, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t getMotorState(function_state & state, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t enableConstFreq(function_state & state, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t disableConstFreq(function_state & state, uint32_t timeout = DEFAULT_TIMEOUT);
+
+		result_t setSaveLowExposure(scan_exposure& low_exposure, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t setLowExposure(scan_exposure& low_exposure, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t setLowExposureAdd(scan_exposure & exposure, uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t setLowExposurerDis(scan_exposure & exposure, uint32_t timeout = DEFAULT_TIMEOUT);
+        result_t setScanHeartbeat(scan_heart_beat& beat,uint32_t timeout = DEFAULT_TIMEOUT);
+		result_t setPointsForOneRingFlag(scan_points& points,uint32_t timeout = DEFAULT_TIMEOUT);
+
 	protected:
 		YDlidarDriver();
 		virtual ~YDlidarDriver();
@@ -243,11 +292,13 @@ namespace ydlidar{
 
 
 	public:
-		bool     isConnected;
-		bool     isScanning;
+		std::atomic<bool>     isConnected;
+        std::atomic<bool>     isScanning;
+		std::atomic<bool>     isHeartbeat;
 
 		enum {
 			DEFAULT_TIMEOUT = 2000, 
+			DEFAULT_HEART_BEAT = 1000,
 			MAX_SCAN_NODES = 2048,
 		};
 		enum { 
@@ -260,7 +311,6 @@ namespace ydlidar{
 		};
 		node_info      scan_node_buf[2048];
 		size_t         scan_node_count;
-		Locker         _scanning_lock;
 		Event          _dataEvent;
 		Locker         _lock;
 		Thread 	       _thread;		
@@ -271,8 +321,13 @@ namespace ydlidar{
 		serial::Serial *_serial;
 		bool m_intensities;
 		int _sampling_rate;
+		int model;
 		uint32_t _baudrate;
 		bool isSupportMotorCtrl;
+		uint64_t m_ns;
+		uint64_t m_calc_ns;
+		uint32_t m_pointTime;
+		uint32_t trans_delay;
 
 	};
 }

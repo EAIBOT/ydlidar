@@ -47,7 +47,7 @@ namespace serial {
 
 		void waitByteTimes (size_t count);
 
-		size_t waitfordata(size_t data_count, uint32_t timeout, size_t * returned_size);
+		int waitfordata(size_t data_count, uint32_t timeout, size_t * returned_size);
 
 		size_t read (uint8_t *buf, size_t size = 1);
 
@@ -77,6 +77,8 @@ namespace serial {
 		bool getRI ();
 
 		bool getCD ();
+
+		uint32_t getByteTime();
 
 		void setPort (const string &port);
 

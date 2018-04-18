@@ -238,16 +238,23 @@ namespace serial {
 		if (is_open_ == true) {
 			return true;
 		}
+        DWORD desiredAccess = 0;
+        originalEventMask = 0;
+
+
+        desiredAccess |= GENERIC_READ;
+        originalEventMask = EV_RXCHAR | EV_ERR ;
+        desiredAccess |= GENERIC_WRITE;
 
 		wstring port_with_prefix = _prefix_port_if_needed(port_);
 		LPCWSTR lp_port = port_with_prefix.c_str();
-		fd_ = CreateFileW(lp_port,
-			GENERIC_READ | GENERIC_WRITE,
+        fd_ = CreateFile(lp_port,
+            desiredAccess,
 			0,
-			0,
+            nullptr,
 			OPEN_EXISTING,
-			FILE_ATTRIBUTE_NORMAL,
-			0);
+            FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,//FILE_FLAG_OVERLAPPED,//FILE_ATTRIBUTE_NORMAL
+            nullptr);
 
 		if (fd_ == INVALID_HANDLE_VALUE) {
 			DWORD errno_ = GetLastError();
@@ -277,6 +284,10 @@ namespace serial {
 			return false;
 		}
 
+        if (!SetupComm(fd_, DEFAULT_RX_BUFFER_SIZE, DEFAULT_TX_BUFFER_SIZE)){
+            return false;
+        }
+
 		DCB dcb;
 		if (!getDcb(&dcb)){
 			return false;
@@ -293,7 +304,40 @@ namespace serial {
 			return false;
 		}
 
-		setTimeout(timeout_);
+        if (!::GetCommTimeouts(fd_, &restoredCommTimeouts)) {
+               return false;
+           }
+
+		   // Update byte_time_ based on the new settings.
+		uint32_t bit_time_ns = 1e9 / dcb.BaudRate;
+
+           ::ZeroMemory(&currentCommTimeouts, sizeof(currentCommTimeouts));
+        DWORD serialBitsPerByte = dcb.ByteSize + 1;
+                serialBitsPerByte +=(dcb.Parity == NOPARITY)?0:1;
+                serialBitsPerByte +=(dcb.StopBits==ONESTOPBIT)?1:2;
+				byte_time_ns_ = bit_time_ns*msPerByte;
+
+                DWORD msPerByte =(dcb.BaudRate >0)?((1000 * serialBitsPerByte + dcb.BaudRate - 1)/dcb.BaudRate):1;
+                currentCommTimeouts.ReadIntervalTimeout = msPerByte; //最小化串联端口数据包连接读取的机会// Minimize chance of concatenating of separate serial port packets on read
+                currentCommTimeouts.ReadTotalTimeoutMultiplier = 0; //当使用大的读取缓冲区时，不允许大的读取超时// Do not allow big read timeout when big read buffer used
+                currentCommTimeouts.ReadTotalTimeoutConstant = 2000; //总读取超时（读取循环的周期）// Total read timeout (period of read loop)
+                currentCommTimeouts.WriteTotalTimeoutConstant = 2000; //写超时的常量部分// Const part of write timeout
+                currentCommTimeouts.WriteTotalTimeoutMultiplier = msPerByte; //写入超时的变量部分（每个字节）// Variable part of write timeout (per byte)
+
+           if (!::SetCommTimeouts(fd_, &currentCommTimeouts)) {
+               return false;
+           }
+
+           if (!::SetCommMask(fd_, originalEventMask)) {
+               return false;
+           }
+           if(!PurgeComm(fd_, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR ))
+               return false;
+
+
+           ::ZeroMemory(&communicationOverlapped, sizeof(communicationOverlapped));
+           if (!(originalEventMask & EV_RXCHAR) &&!::WaitCommEvent(fd_, &triggeredEventMask, &communicationOverlapped))
+                   return false;
 
 		return true;
 
@@ -337,7 +381,7 @@ namespace serial {
 		return ;
 	}
 
-	size_t  Serial::SerialImpl::waitfordata(size_t data_count, uint32_t timeout, size_t * returned_size) {
+    int  Serial::SerialImpl::waitfordata(size_t data_count, uint32_t timeout, size_t * returned_size) {
 		if (!is_open_) {
 			return 0;
 		}
@@ -359,11 +403,12 @@ namespace serial {
 		while ( is_open_ )
 		{
 			msk = 0;
-			SetCommMask(fd_, EV_RXCHAR | EV_ERR );
+            SetCommMask(fd_, EV_RXCHAR | EV_ERR );
 			if(!WaitCommEvent(fd_, &msk, &_wait_o))
 			{
 				if(GetLastError() == ERROR_IO_PENDING)
 				{
+
 					if (WaitForSingleObject(_wait_o.hEvent, timeout) == WAIT_TIMEOUT) {
 						*returned_size =0;
 						return -1;
@@ -397,25 +442,29 @@ namespace serial {
 	}
 
 
-	size_t Serial::SerialImpl::read (uint8_t *buf, size_t size){
+    size_t Serial::SerialImpl::read (uint8_t *buf, size_t size){
 		if (!is_open_) {
 			return 0;
 		}
 		DWORD bytes_read;
-		if (!ReadFile(fd_, buf, static_cast<DWORD>(size), &bytes_read, NULL)) {
+        ::ZeroMemory(&readCompletionOverlapped, sizeof(readCompletionOverlapped));
+        if (!ReadFile(fd_, buf, static_cast<DWORD>(size), &bytes_read, &readCompletionOverlapped)) {
 			if(GetLastError() == ERROR_IO_PENDING) {
-				if(!GetOverlappedResult(fd_, NULL, &bytes_read, FALSE)){
+                DWORD dwWait=::WaitForSingleObject(fd_, INFINITE);
+                if(dwWait != WAIT_OBJECT_0){
+                if(!GetOverlappedResult(fd_, NULL, &bytes_read, TRUE)){
 					if(GetLastError() != ERROR_IO_INCOMPLETE){
 						return 0;
 					}
 				}
+                }
 			}
 			return 0;
 		}
-		return (size_t) (bytes_read);
+        return (int) (bytes_read);
 	}
 
-	size_t Serial::SerialImpl::write (const uint8_t *data, size_t length) {
+    size_t Serial::SerialImpl::write (const uint8_t *data, size_t length) {
 		if (is_open_ == false) {
 			return 0;
 		}
@@ -425,10 +474,12 @@ namespace serial {
 			PurgeComm(fd_, PURGE_TXABORT | PURGE_TXCLEAR);
 		}
 		DWORD bytes_written;
-		if (!WriteFile(fd_, data, static_cast<DWORD>(length), &bytes_written, NULL)) {
+        ::ZeroMemory(&writeCompletionOverlapped, sizeof(writeCompletionOverlapped));
+
+        if (!::WriteFile(fd_, data, static_cast<DWORD>(length), &bytes_written, &writeCompletionOverlapped)) {
 			return 0;
 		}
-		return (size_t) (bytes_written);
+        return (int) (bytes_written);
 	}
 
 	void Serial::SerialImpl::setPort (const string &port) {
@@ -444,14 +495,20 @@ namespace serial {
 		if(fd_ == INVALID_HANDLE_VALUE){
 			return;
 		}
-		// Setup timeouts
-		COMMTIMEOUTS timeouts = {0};
-		timeouts.ReadIntervalTimeout = timeout_.inter_byte_timeout;
-		timeouts.ReadTotalTimeoutConstant = timeout_.read_timeout_constant;
-		timeouts.ReadTotalTimeoutMultiplier = timeout_.read_timeout_multiplier;
-		timeouts.WriteTotalTimeoutConstant = timeout_.write_timeout_constant;
-		timeouts.WriteTotalTimeoutMultiplier = timeout_.write_timeout_multiplier;
-		if (!SetCommTimeouts(fd_, &timeouts)) {
+
+        COMMTIMEOUTS currentTimeouts;
+               if(!::GetCommTimeouts(fd_,&currentTimeouts)){
+                   return;
+               }
+               // Setup timeouts
+               ::ZeroMemory(&currentCommTimeouts, sizeof(currentCommTimeouts));
+               currentCommTimeouts.ReadIntervalTimeout = currentTimeouts.ReadIntervalTimeout;//MAXWORD;
+               currentCommTimeouts.ReadTotalTimeoutConstant = timeout_.read_timeout_constant;
+               currentCommTimeouts.ReadTotalTimeoutMultiplier = timeout_.read_timeout_multiplier;
+               currentCommTimeouts.WriteTotalTimeoutConstant = timeout_.write_timeout_constant;
+               currentCommTimeouts.WriteTotalTimeoutMultiplier = currentTimeouts.WriteTotalTimeoutMultiplier;//timeout_.write_timeout_multiplier;
+
+        if (!SetCommTimeouts(fd_, &currentCommTimeouts)) {
 			return;
 		}
 
@@ -478,7 +535,6 @@ namespace serial {
 		}
 		return true;
 	}
-
 
 
 	bool Serial::SerialImpl::setBaudrate (unsigned long baudrate){
@@ -642,7 +698,12 @@ namespace serial {
 				return false;
 			}
 		}
-		return true;
+        DCB dcb;
+        if (!getDcb(&dcb))
+            return false;
+
+        dcb.fDtrControl = level ? DTR_CONTROL_ENABLE : DTR_CONTROL_DISABLE;
+        return setDcb(&dcb);
 	}
 
 	bool Serial::SerialImpl::waitForChange () {
@@ -714,6 +775,11 @@ namespace serial {
 
 		return (MS_RLSD_ON & dwModemStatus) != 0;
 	}
+
+	uint32_t Serial::SerialImpl::getByteTime(){
+		return byte_time_ns_;
+	}
+
 
 	int Serial::SerialImpl::readLock() {
 		if (WaitForSingleObject(read_mutex, INFINITE) != WAIT_OBJECT_0) {

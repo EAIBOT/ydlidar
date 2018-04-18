@@ -1,6 +1,4 @@
 #pragma once
-
-
 #include "../sdk/include/ydlidar_driver.h"
 #include "../sdk/src/common.h"
 #include <exception>
@@ -39,7 +37,7 @@ private:
 
     std::vector<int> split(const std::string &s, char delim);
 
-    void publicScanData(node_info *nodes, uint64_t start,double scan_time, size_t node_count, float angle_min, float angle_max,std::vector<int> ignore_array);
+    void publicScanData(node_info *nodes, uint64_t start,double scan_time, size_t node_count, float angle_min, float angle_max,bool reverse_data);
 
 
     enum DEVICE_STATE {
@@ -57,7 +55,7 @@ private:
     bool intensities_;
     int publish_freq_;
     double angle_min_, angle_max_;
-    std::vector<int> ignore_array_;
+    bool inverted;
 };
 
 

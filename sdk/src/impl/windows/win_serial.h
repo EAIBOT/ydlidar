@@ -16,7 +16,7 @@ namespace serial {
 
 	class serial::Serial::SerialImpl {
 	public:
-		SerialImpl (const string &port,
+		explicit SerialImpl (const string &port,
 			unsigned long baudrate,
 			bytesize_t bytesize,
 			parity_t parity,
@@ -37,7 +37,7 @@ namespace serial {
 
 		void waitByteTimes (size_t count);
 
-		size_t waitfordata(size_t data_count, uint32_t timeout, size_t * returned_size);
+		int waitfordata(size_t data_count, uint32_t timeout, size_t * returned_size);
 
 		size_t read (uint8_t *buf, size_t size = 1);
 
@@ -66,6 +66,8 @@ namespace serial {
 		bool getRI ();
 
 		bool getCD ();
+
+		uint32_t getByteTime();
 
 		void setPort (const string &port);
 
@@ -112,15 +114,32 @@ namespace serial {
 	protected:
 		bool reconfigurePort ();
 
+    public:
+        enum {
+            DEFAULT_RX_BUFFER_SIZE = 4096*4,
+            DEFAULT_TX_BUFFER_SIZE = 128,
+        };
+
+
 	private:
 		wstring port_;               // Path to the file descriptor
 		HANDLE fd_;
 		OVERLAPPED _wait_o;
 
+                OVERLAPPED communicationOverlapped;
+                OVERLAPPED readCompletionOverlapped;
+                OVERLAPPED writeCompletionOverlapped;
+                DWORD originalEventMask;
+                DWORD triggeredEventMask;
+
+                COMMTIMEOUTS currentCommTimeouts;
+                    COMMTIMEOUTS restoredCommTimeouts;
+
 		bool is_open_;
 
 		Timeout timeout_;           // Timeout for read operations
 		unsigned long baudrate_;    // Baudrate
+		uint32_t byte_time_ns_;     // Nanoseconds to transmit/receive a single byte
 
 		parity_t parity_;           // Parity
 		bytesize_t bytesize_;       // Size of the bytes

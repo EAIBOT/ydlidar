@@ -25,5 +25,3 @@
 #include <sys/select.h>
 #include <time.h>
 
-#include "unix_timer.h"
-

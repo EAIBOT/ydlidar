@@ -2,8 +2,8 @@
  *  YDLIDAR SYSTEM
  *  YDLIDAR ROS Node Client 
  *
- *  Copyright 2015 - 2017 EAI TEAM
- *  http://www.eaibot.com
+ *  Copyright 2015 - 2018 EAI TEAM
+ *  http://www.ydlidar.com
  * 
  */
 
@@ -20,7 +20,8 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan)
   
     for(int i = 0; i < count; i++) {
         float degree = RAD2DEG(scan->angle_min + scan->angle_increment * i);
-        printf("[YDLIDAR INFO]: angle-distance : [%f, %f]", degree, scan->ranges[i]);
+	if(degree > -5 && degree< 5)
+        printf("[YDLIDAR INFO]: angle-distance : [%f, %f, %i]\n", degree, scan->ranges[i], i);
     }
 }
 

@@ -7,5 +7,4 @@
 #include <process.h>
 #include <direct.h> 
 
-#include "win_timer.h"
 

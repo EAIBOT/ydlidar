@@ -275,7 +275,7 @@ struct serial_struct {
 #else
 		::cfmakeraw(tio);
 #endif
-		tio->c_cflag |= CLOCAL;
+		tio->c_cflag |= CLOCAL|CREAD;
 		tio->c_cc[VTIME] = 0;
 		tio->c_cc[VMIN] = 0;
 	}
@@ -628,7 +628,7 @@ struct serial_struct {
 	}
 
 
-	size_t Serial::SerialImpl::waitfordata(size_t data_count, uint32_t timeout, size_t * returned_size) {
+	int Serial::SerialImpl::waitfordata(size_t data_count, uint32_t timeout, size_t * returned_size) {
 		size_t length = 0;
 		if (returned_size==NULL){
 			returned_size=(size_t *)&length;
@@ -657,7 +657,14 @@ struct serial_struct {
 			}
 		}
 
+		MillisecondTimer total_timeout(timeout);
+
 		while(is_open_){
+			int64_t timeout_remaining_ms = total_timeout.remaining();
+			if ((timeout_remaining_ms <= 0)) {
+				// Timed out
+				return -1;
+			}
 			/* Do the select */
 			int n = ::select(max_fd, &input_set, NULL, NULL, &timeout_val);
 
@@ -1248,6 +1255,10 @@ struct serial_struct {
 		}else{
 			return 0 != (status & TIOCM_CD);
 		}
+	}
+
+	uint32_t Serial::SerialImpl::getByteTime(){
+		return byte_time_ns_;
 	}
 
 	int Serial::SerialImpl::readLock (){
