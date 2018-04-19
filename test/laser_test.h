@@ -39,7 +39,7 @@ private:
 
     std::vector<int> split(const std::string &s, char delim);
 
-    void publicScanData(node_info *nodes, uint64_t start,double scan_time, size_t node_count, float angle_min, float angle_max,std::vector<int> ignore_array);
+    void publicScanData(node_info *nodes, uint64_t start,double scan_time, float angle_min, float angle_max,std::vector<int> ignore_array);
 
 
     enum DEVICE_STATE {
