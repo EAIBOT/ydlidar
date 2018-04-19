@@ -35,6 +35,9 @@ typedef uint64_t       _size_t;
 #elif defined (WIN32)
 typedef uint32_t       _size_t;
 #define THREAD_PROC    __stdcall
+#elif defined (_M_X64)
+typedef uint64_t       _size_t;
+#define THREAD_PROC    __stdcall
 #elif defined (__GNUC__)
 typedef unsigned long  _size_t;
 #define THREAD_PROC   
