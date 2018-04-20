@@ -542,6 +542,9 @@ namespace serial {
 		/*! Returns the current status of the CD line. */
 		bool getCD ();
 
+		/*! Returns the singal byte time. */
+		uint32_t getByteTime();
+
 	private:
 		// Disable copy constructors
 		Serial(const Serial&);
@@ -585,8 +588,7 @@ namespace serial {
 	*
 	* \return vector of serial::PortInfo.
 	*/
-	std::vector<PortInfo>
-		list_ports();
+	//std::vector<PortInfo> list_ports();
 
 } // namespace serial
 

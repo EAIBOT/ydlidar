@@ -321,4 +321,8 @@ namespace serial {
 	bool Serial::getCD (){
 		return pimpl_->getCD ();
 	}
+
+	uint32_t Serial::getByteTime(){
+		return pimpl_->getByteTime();
+	}
 }

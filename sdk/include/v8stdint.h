@@ -35,6 +35,9 @@ typedef uint64_t       _size_t;
 #elif defined (WIN32)
 typedef uint32_t       _size_t;
 #define THREAD_PROC    __stdcall
+#elif defined (_M_X64)
+typedef uint64_t       _size_t;
+#define THREAD_PROC    __stdcall
 #elif defined (__GNUC__)
 typedef unsigned long  _size_t;
 #define THREAD_PROC   
@@ -46,9 +49,14 @@ typedef uint32_t       _size_t;
 typedef _size_t (THREAD_PROC * thread_proc_t ) ( void * );
 
 typedef int32_t result_t;
+typedef uint64_t TTimeStamp;
 
 #define RESULT_OK      0
 #define RESULT_TIMEOUT -1
 #define RESULT_FAIL    -2
+
+#define INVALID_TIMESTAMP (0)
+
+
 
 #endif  // V8STDINT_H_
