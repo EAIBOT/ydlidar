@@ -108,7 +108,7 @@ bool getDeviceInfo(std::string port , int& samp_rate, double _frequency, int bau
     }
 
     device_info devinfo;
-    if (YDlidarDriver::singleton()->getDeviceInfo(devinfo,300) !=RESULT_OK){
+    if (YDlidarDriver::singleton()->getDeviceInfo(devinfo) !=RESULT_OK){
         if(print==3)
             ROS_ERROR("YDLIDAR get DeviceInfo Error\n" );
         return false;
@@ -291,7 +291,7 @@ bool getDeviceHealth()
     result_t op_result;
     device_health healthinfo;
 
-    op_result = YDlidarDriver::singleton()->getHealth(healthinfo,300);
+    op_result = YDlidarDriver::singleton()->getHealth(healthinfo);
     if (op_result == RESULT_OK) { 
         printf("[YDLIDAR INFO] YDLIDAR running correctly! The health status: %s\n", healthinfo.status==0?"well":"bad");
         
@@ -441,7 +441,7 @@ again:
     if(type !=4){
 	    intensities_ = false;
     }else{
-		intensities_ = true;
+        intensities_ = true;
         if(baudrate != 153600){
             intensities_ = false;
         }
@@ -486,6 +486,13 @@ again:
             }
 
         }
+
+        if(_frequency < 7 && samp_rate>6){
+            nodes_count = 1600;
+
+        }else if( _frequency < 6&&samp_rate == 9){
+            nodes_count = 1800;
+        }
     }
 
     result_t ans=YDlidarDriver::singleton()->startScan();
@@ -506,7 +513,10 @@ again:
     double scan_duration;
     ros::Rate rate(30);
 
+
+
     int max_nodes_count = nodes_count;
+    each_angle = 360.0/nodes_count;
 
     while (ros::ok()) {
         try{
