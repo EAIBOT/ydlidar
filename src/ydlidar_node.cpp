@@ -489,9 +489,10 @@ again:
 
         if(_frequency < 7 && samp_rate>6){
             nodes_count = 1600;
-
         }else if( _frequency < 6&&samp_rate == 9){
-            nodes_count = 1800;
+            nodes_count = 2000;
+        }else if( _frequency < 6 && samp_rate == 4){
+            nodes_count = 900;
         }
     }
 
