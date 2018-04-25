@@ -732,13 +732,6 @@ namespace ydlidar{
     	*/
 		result_t sendData(const uint8_t * data, size_t size);
 
-		/**
-		* @brief 关闭扫描 \n
-    	* @return 返回执行结果
-    	* @retval RESULT_OK       关闭成功
-    	* @retval RESULT_FAILE    关闭失败
-    	*/
-		result_t stop();
 
 		/**
 		* @brief 关闭数据获取通道 \n
