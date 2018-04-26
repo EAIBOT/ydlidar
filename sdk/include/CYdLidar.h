@@ -91,5 +91,6 @@ private:
     bool isScanning;
     int node_counts ;
     double each_angle;
+    int show_error;
 };	// End of class
 

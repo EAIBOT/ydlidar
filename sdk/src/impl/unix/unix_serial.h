@@ -16,7 +16,7 @@ namespace serial {
 
 	class MillisecondTimer {
 	public:
-		MillisecondTimer(const uint32_t millis);         
+        explicit MillisecondTimer(const uint32_t millis);
 		int64_t remaining();
 
 	private:
@@ -26,7 +26,7 @@ namespace serial {
 
 	class serial::Serial::SerialImpl {
 	public:
-		SerialImpl (const string &port,
+        explicit SerialImpl (const string &port,
 			unsigned long baudrate,
 			bytesize_t bytesize,
 			parity_t parity,

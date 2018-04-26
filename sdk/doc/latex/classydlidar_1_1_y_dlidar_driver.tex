@@ -38,16 +38,16 @@ result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a2c5eeecccaa6ed874635d
 void \hyperlink{classydlidar_1_1_y_dlidar_driver_aa26790ae49d33936229fa67739a8ff5f}{disconnect} ()\hypertarget{classydlidar_1_1_y_dlidar_driver_aa26790ae49d33936229fa67739a8ff5f}{}\label{classydlidar_1_1_y_dlidar_driver_aa26790ae49d33936229fa67739a8ff5f}
 
 \begin{DoxyCompactList}\small\item\em 断开雷达连接 \end{DoxyCompactList}\item 
-const bool \hyperlink{classydlidar_1_1_y_dlidar_driver_ab6e35a7ba1eea55dc7ff1d03e0de9a46}{isscanning} ()
+const bool \hyperlink{classydlidar_1_1_y_dlidar_driver_a37cd2766dec3536848aa25c88d9d1ea9}{isscanning} () const 
 \begin{DoxyCompactList}\small\item\em 扫图状态 ~\newline
 \end{DoxyCompactList}\item 
-const bool \hyperlink{classydlidar_1_1_y_dlidar_driver_ad4eee87f94cdbeabb3866b7dca08249f}{isconnected} ()
+const bool \hyperlink{classydlidar_1_1_y_dlidar_driver_a2553d28304faa4acab6bd63e7c6c2ee6}{isconnected} () const 
 \begin{DoxyCompactList}\small\item\em 连接雷达状态 ~\newline
 \end{DoxyCompactList}\item 
 void \hyperlink{classydlidar_1_1_y_dlidar_driver_a406ae191df8a2a2fa90de4175cfe9d4c}{set\+Intensities} (const bool isintensities)
 \begin{DoxyCompactList}\small\item\em 设置雷达是否带信号质量 ~\newline
 连接成功后，必须使用\+::disconnect函数关闭 \end{DoxyCompactList}\item 
-const bool \hyperlink{classydlidar_1_1_y_dlidar_driver_acbfb9ad990b09902afee8d868a473f68}{get\+Heart\+Beat} ()
+const bool \hyperlink{classydlidar_1_1_y_dlidar_driver_a36b01c5124032be12ecbeffeefd38742}{get\+Heart\+Beat} () const 
 \begin{DoxyCompactList}\small\item\em 获取当前雷达掉电保护功能 ~\newline
 \end{DoxyCompactList}\item 
 void \hyperlink{classydlidar_1_1_y_dlidar_driver_ab2bf62735be18019864c12f0e462c4a2}{set\+Heart\+Beat} (const bool enable)
@@ -214,7 +214,7 @@ result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_ab096ecdc3642c04e3e8b0
 result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a0e089d615193ccef4bf488f63ff8130e}{wait\+Response\+Header} (\hyperlink{structlidar__ans__header}{lidar\+\_\+ans\+\_\+header} $\ast$header, uint32\+\_\+t timeout=\hyperlink{classydlidar_1_1_y_dlidar_driver_a13a4f2dc4067b43794b2c47c06d5d27aa07c79ce96f468ff4b40495ef84584442}{D\+E\+F\+A\+U\+L\+T\+\_\+\+T\+I\+M\+E\+O\+UT})
 \begin{DoxyCompactList}\small\item\em 等待激光数据包头 ~\newline
 \end{DoxyCompactList}\item 
-result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a03cb9fc8c33f9486182b44ac97690868}{wait\+For\+Data} (size\+\_\+t data\+\_\+count, uint32\+\_\+t timeout=-\/1, size\+\_\+t $\ast$returned\+\_\+size=N\+U\+LL)
+result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a13f404b44f51941d1642bfe250de3522}{wait\+For\+Data} (size\+\_\+t data\+\_\+count, uint32\+\_\+t timeout=\hyperlink{classydlidar_1_1_y_dlidar_driver_a13a4f2dc4067b43794b2c47c06d5d27aa07c79ce96f468ff4b40495ef84584442}{D\+E\+F\+A\+U\+L\+T\+\_\+\+T\+I\+M\+E\+O\+UT}, size\+\_\+t $\ast$returned\+\_\+size=N\+U\+LL)
 \begin{DoxyCompactList}\small\item\em 等待固定数量串口数据 ~\newline
 \end{DoxyCompactList}\item 
 result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_ad787e714bc05e5a70a42b096e632c60f}{get\+Data} (uint8\+\_\+t $\ast$data, size\+\_\+t size)
@@ -222,9 +222,6 @@ result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_ad787e714bc05e5a70a42b
 \end{DoxyCompactList}\item 
 result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a998ba4b05927d19e8a0d4d29d3d47656}{send\+Data} (const uint8\+\_\+t $\ast$data, size\+\_\+t size)
 \begin{DoxyCompactList}\small\item\em 串口发送数据 ~\newline
-\end{DoxyCompactList}\item 
-result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a7aa354e88eeb6984be4d18eae6367a0b}{stop} ()
-\begin{DoxyCompactList}\small\item\em 关闭扫描 ~\newline
 \end{DoxyCompactList}\item 
 void \hyperlink{classydlidar_1_1_y_dlidar_driver_ae66565bee3cdb8b74698b691f2ab1e63}{disable\+Data\+Grabbing} ()\hypertarget{classydlidar_1_1_y_dlidar_driver_ae66565bee3cdb8b74698b691f2ab1e63}{}\label{classydlidar_1_1_y_dlidar_driver_ae66565bee3cdb8b74698b691f2ab1e63}
 
@@ -598,11 +595,11 @@ A destructor. A more elaborate description of the destructor.
 \end{DoxyRetVals}
 \index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!get\+Heart\+Beat@{get\+Heart\+Beat}}
 \index{get\+Heart\+Beat@{get\+Heart\+Beat}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
-\subsubsection[{\texorpdfstring{get\+Heart\+Beat()}{getHeartBeat()}}]{\setlength{\rightskip}{0pt plus 5cm}const bool ydlidar\+::\+Y\+Dlidar\+Driver\+::get\+Heart\+Beat (
+\subsubsection[{\texorpdfstring{get\+Heart\+Beat() const }{getHeartBeat() const }}]{\setlength{\rightskip}{0pt plus 5cm}const bool ydlidar\+::\+Y\+Dlidar\+Driver\+::get\+Heart\+Beat (
 \begin{DoxyParamCaption}
 {}
 \end{DoxyParamCaption}
-)}\hypertarget{classydlidar_1_1_y_dlidar_driver_acbfb9ad990b09902afee8d868a473f68}{}\label{classydlidar_1_1_y_dlidar_driver_acbfb9ad990b09902afee8d868a473f68}
+) const}\hypertarget{classydlidar_1_1_y_dlidar_driver_a36b01c5124032be12ecbeffeefd38742}{}\label{classydlidar_1_1_y_dlidar_driver_a36b01c5124032be12ecbeffeefd38742}
 
 
 获取当前雷达掉电保护功能 ~\newline
@@ -770,11 +767,11 @@ A destructor. A more elaborate description of the destructor.
 \end{DoxyNote}
 \index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!isconnected@{isconnected}}
 \index{isconnected@{isconnected}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
-\subsubsection[{\texorpdfstring{isconnected()}{isconnected()}}]{\setlength{\rightskip}{0pt plus 5cm}const bool ydlidar\+::\+Y\+Dlidar\+Driver\+::isconnected (
+\subsubsection[{\texorpdfstring{isconnected() const }{isconnected() const }}]{\setlength{\rightskip}{0pt plus 5cm}const bool ydlidar\+::\+Y\+Dlidar\+Driver\+::isconnected (
 \begin{DoxyParamCaption}
 {}
 \end{DoxyParamCaption}
-)}\hypertarget{classydlidar_1_1_y_dlidar_driver_ad4eee87f94cdbeabb3866b7dca08249f}{}\label{classydlidar_1_1_y_dlidar_driver_ad4eee87f94cdbeabb3866b7dca08249f}
+) const}\hypertarget{classydlidar_1_1_y_dlidar_driver_a2553d28304faa4acab6bd63e7c6c2ee6}{}\label{classydlidar_1_1_y_dlidar_driver_a2553d28304faa4acab6bd63e7c6c2ee6}
 
 
 连接雷达状态 ~\newline
@@ -792,11 +789,11 @@ A destructor. A more elaborate description of the destructor.
 \end{DoxyRetVals}
 \index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!isscanning@{isscanning}}
 \index{isscanning@{isscanning}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
-\subsubsection[{\texorpdfstring{isscanning()}{isscanning()}}]{\setlength{\rightskip}{0pt plus 5cm}const bool ydlidar\+::\+Y\+Dlidar\+Driver\+::isscanning (
+\subsubsection[{\texorpdfstring{isscanning() const }{isscanning() const }}]{\setlength{\rightskip}{0pt plus 5cm}const bool ydlidar\+::\+Y\+Dlidar\+Driver\+::isscanning (
 \begin{DoxyParamCaption}
 {}
 \end{DoxyParamCaption}
-)}\hypertarget{classydlidar_1_1_y_dlidar_driver_ab6e35a7ba1eea55dc7ff1d03e0de9a46}{}\label{classydlidar_1_1_y_dlidar_driver_ab6e35a7ba1eea55dc7ff1d03e0de9a46}
+) const}\hypertarget{classydlidar_1_1_y_dlidar_driver_a37cd2766dec3536848aa25c88d9d1ea9}{}\label{classydlidar_1_1_y_dlidar_driver_a37cd2766dec3536848aa25c88d9d1ea9}
 
 
 扫图状态 ~\newline
@@ -1503,28 +1500,6 @@ A destructor. A more elaborate description of the destructor.
 {\em R\+E\+S\+U\+L\+T\+\_\+\+F\+A\+I\+LE} & 关闭失败 \\
 \hline
 \end{DoxyRetVals}
-\index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!stop@{stop}}
-\index{stop@{stop}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
-\subsubsection[{\texorpdfstring{stop()}{stop()}}]{\setlength{\rightskip}{0pt plus 5cm}result\+\_\+t ydlidar\+::\+Y\+Dlidar\+Driver\+::stop (
-\begin{DoxyParamCaption}
-{}
-\end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [protected]}}\hypertarget{classydlidar_1_1_y_dlidar_driver_a7aa354e88eeb6984be4d18eae6367a0b}{}\label{classydlidar_1_1_y_dlidar_driver_a7aa354e88eeb6984be4d18eae6367a0b}
-
-
-关闭扫描 ~\newline
-
-
-\begin{DoxyReturn}{Returns}
-返回执行结果 
-\end{DoxyReturn}
-
-\begin{DoxyRetVals}{Return values}
-{\em R\+E\+S\+U\+L\+T\+\_\+\+OK} & 关闭成功 \\
-\hline
-{\em R\+E\+S\+U\+L\+T\+\_\+\+F\+A\+I\+LE} & 关闭失败 \\
-\hline
-\end{DoxyRetVals}
 \index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!stop\+Motor@{stop\+Motor}}
 \index{stop\+Motor@{stop\+Motor}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
 \subsubsection[{\texorpdfstring{stop\+Motor()}{stopMotor()}}]{\setlength{\rightskip}{0pt plus 5cm}result\+\_\+t ydlidar\+::\+Y\+Dlidar\+Driver\+::stop\+Motor (
@@ -1549,13 +1524,13 @@ A destructor. A more elaborate description of the destructor.
 \end{DoxyRetVals}
 \index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!wait\+For\+Data@{wait\+For\+Data}}
 \index{wait\+For\+Data@{wait\+For\+Data}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
-\subsubsection[{\texorpdfstring{wait\+For\+Data(size\+\_\+t data\+\_\+count, uint32\+\_\+t timeout=-\/1, size\+\_\+t $\ast$returned\+\_\+size=\+N\+U\+L\+L)}{waitForData(size_t data_count, uint32_t timeout=-1, size_t *returned_size=NULL)}}]{\setlength{\rightskip}{0pt plus 5cm}result\+\_\+t ydlidar\+::\+Y\+Dlidar\+Driver\+::wait\+For\+Data (
+\subsubsection[{\texorpdfstring{wait\+For\+Data(size\+\_\+t data\+\_\+count, uint32\+\_\+t timeout=\+D\+E\+F\+A\+U\+L\+T\+\_\+\+T\+I\+M\+E\+O\+U\+T, size\+\_\+t $\ast$returned\+\_\+size=\+N\+U\+L\+L)}{waitForData(size_t data_count, uint32_t timeout=DEFAULT_TIMEOUT, size_t *returned_size=NULL)}}]{\setlength{\rightskip}{0pt plus 5cm}result\+\_\+t ydlidar\+::\+Y\+Dlidar\+Driver\+::wait\+For\+Data (
 \begin{DoxyParamCaption}
 \item[{size\+\_\+t}]{data\+\_\+count, }
-\item[{uint32\+\_\+t}]{timeout = {\ttfamily -\/1}, }
+\item[{uint32\+\_\+t}]{timeout = {\ttfamily {\bf D\+E\+F\+A\+U\+L\+T\+\_\+\+T\+I\+M\+E\+O\+UT}}, }
 \item[{size\+\_\+t $\ast$}]{returned\+\_\+size = {\ttfamily NULL}}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [protected]}}\hypertarget{classydlidar_1_1_y_dlidar_driver_a03cb9fc8c33f9486182b44ac97690868}{}\label{classydlidar_1_1_y_dlidar_driver_a03cb9fc8c33f9486182b44ac97690868}
+)\hspace{0.3cm}{\ttfamily [protected]}}\hypertarget{classydlidar_1_1_y_dlidar_driver_a13f404b44f51941d1642bfe250de3522}{}\label{classydlidar_1_1_y_dlidar_driver_a13f404b44f51941d1642bfe250de3522}
 
 
 等待固定数量串口数据 ~\newline
@@ -1679,5 +1654,5 @@ A destructor. A more elaborate description of the destructor.
 
 The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
 \item 
-include/ydlidar\+\_\+driver.\+h\item 
-src/ydlidar\+\_\+driver.\+cpp\end{DoxyCompactItemize}
+/home/yang/tmp/sdk/include/ydlidar\+\_\+driver.\+h\item 
+/home/yang/tmp/sdk/src/ydlidar\+\_\+driver.\+cpp\end{DoxyCompactItemize}

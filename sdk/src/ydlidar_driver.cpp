@@ -14,18 +14,32 @@ using namespace impl;
 namespace ydlidar{
 
 	YDlidarDriver* YDlidarDriver::_impl = NULL;
-	int YDlidarDriver::PackageSampleBytes = 2;
 
 	YDlidarDriver::YDlidarDriver():
 	_serial(0) {
 		isConnected = false;
 		isScanning = false;
+        //串口配置参数
 		m_intensities = false;
 		isHeartbeat = false;
 		_baudrate = 115200;
 		isSupportMotorCtrl=true;
 		_sampling_rate=-1;
 		model = -1;
+
+        //解析参数
+        PackageSampleBytes = 2;
+        package_Sample_Index = 0;
+        IntervalSampleAngle = 0.0;
+        IntervalSampleAngle_LastPackage = 0.0;
+        FirstSampleAngle = 0;
+        LastSampleAngle = 0;
+        CheckSun = 0;
+        CheckSunCal = 0;
+        SampleNumlAndCTCal = 0;
+        LastSampleAngleCal = 0;
+        CheckSunResult = true;
+        Valu8Tou16 = 0;
 	}
 
 	YDlidarDriver::~YDlidarDriver(){
@@ -134,11 +148,11 @@ namespace ydlidar{
 		_thread.join();
 	}
 
-	const bool YDlidarDriver::isscanning()
+    const bool YDlidarDriver::isscanning() const
 	{
 		return isScanning;
 	}
-    const bool YDlidarDriver::isconnected()
+    const bool YDlidarDriver::isconnected() const
     {
         return isConnected;
     }
@@ -334,29 +348,10 @@ namespace ydlidar{
 		uint8_t* recvBuffer = new uint8_t[size];
 
 		uint32_t waitTime;
-
-		static node_package package;
-		static node_packages packages;
-
-		static uint16_t package_Sample_Index = 0;
-		static float IntervalSampleAngle = 0.0;
-		static float IntervalSampleAngle_LastPackage = 0.0;
-		static uint16_t FirstSampleAngle = 0;
-		static uint16_t LastSampleAngle = 0;
-		static uint16_t CheckSun = 0;
-
-		static uint16_t CheckSunCal = 0;
-		static uint16_t SampleNumlAndCTCal = 0;
-		static uint16_t LastSampleAngleCal = 0;
-		static bool CheckSunResult = true;
-		static uint16_t Valu8Tou16 = 0;
 		uint64_t ns;
-
 		uint8_t *packageBuffer = (m_intensities)?(uint8_t*)&package.package_Head:(uint8_t*)&packages.package_Head;
 		uint8_t  package_Sample_Num = 0;
-
 		int32_t AngleCorrectForDistance;
-
 		int  package_recvPos = 0;
 
 		if(package_Sample_Index == 0) {
@@ -832,7 +827,7 @@ namespace ydlidar{
 	/************************************************************************/	
 	/* Get heartbeat function status                                        */
 	/************************************************************************/
-	const bool YDlidarDriver::getHeartBeat()
+    const bool YDlidarDriver::getHeartBeat() const
 	{
 		return isHeartbeat;
 
@@ -874,6 +869,60 @@ namespace ydlidar{
 		stop();   
 		startMotor();
 
+        {
+            //calc stamp
+            m_pointTime = 1e9/4000;
+            trans_delay = 0;
+            {
+                if(model != -1){
+                    switch(model){
+                        case 1://f4
+                        trans_delay = _serial->getByteTime();
+                        break;
+                        case 5://g4
+                        {
+                            if(_sampling_rate == -1){
+                                sampling_rate _rate;
+                                getSamplingRate(_rate);
+                                _sampling_rate = _rate.rate;
+                            }
+                            switch(_sampling_rate){
+                                case 1:
+                                m_pointTime = 1e9/8000;
+                                break;
+                                case 2:
+                                m_pointTime = 1e9/9000;
+                                break;
+                            }
+
+                        }
+                        trans_delay = _serial->getByteTime();
+                        break;
+                        case 6://x4
+                        m_pointTime = 1e9/5000;
+                        break;
+                        case 8://f4pro
+                        {
+                            if(_sampling_rate == -1){
+                                sampling_rate _rate;
+                                getSamplingRate(_rate);
+                                _sampling_rate = _rate.rate;
+                            }
+                            if(_sampling_rate ==1){
+                                m_pointTime = 1e9/6000;
+                            }
+
+                        }
+                        trans_delay = _serial->getByteTime();
+                        break;
+                        case 9://g4c
+                        trans_delay = _serial->getByteTime();
+                        break;
+                    }
+                }
+            }
+        }
+
 		{
 			ScopedLocker l(_lock);
 			if ((ans = sendCommand(force?LIDAR_CMD_FORCE_SCAN:LIDAR_CMD_SCAN)) != RESULT_OK) {
@@ -892,57 +941,7 @@ namespace ydlidar{
 			if (response_header.size < (sizeof(node_info)-sizeof(uint64_t))) {
 				return RESULT_FAIL;
 			}
-			//calc stamp
-			m_pointTime = 1e9/4000;
-			trans_delay = 0;
-			{
-				if(model != -1){
-					switch(model){
-						case 1://f4
-						trans_delay = _serial->getByteTime();
-						break;
-						case 5://g4
-						{
-							if(_sampling_rate == -1){
-								sampling_rate _rate;
-								getSamplingRate(_rate);
-								_sampling_rate = _rate.rate;
-							}
-							switch(_sampling_rate){
-								case 1:
-								m_pointTime = 1e9/8000;
-								break;
-								case 2:
-								m_pointTime = 1e9/9000;
-								break;
-							}
 
-						}
-						trans_delay = _serial->getByteTime();
-						break;
-						case 6://x4
-						m_pointTime = 1e9/5000;
-						break;
-						case 8://f4pro
-						{
-							if(_sampling_rate == -1){
-								sampling_rate _rate;
-								getSamplingRate(_rate);
-								_sampling_rate = _rate.rate;
-							}
-							if(_sampling_rate ==1){
-								m_pointTime = 1e9/6000;
-							}
-
-						}
-						trans_delay = _serial->getByteTime();
-						break;
-						case 9://g4c
-						trans_delay = _serial->getByteTime();
-						break;
-					}
-				}
-			}
 			ans = this->createThread();
 			return ans;
 		}

@@ -1,5 +1,6 @@
 #include "CYdLidar.h"
 #include "common.h"
+#include <map>
 
 #ifndef _countof
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
@@ -32,6 +33,7 @@ CYdLidar::CYdLidar()
     isScanning = false;
     node_counts = 720;
     each_angle = 0.5;
+    show_error = 0;
     m_IgnoreArray.clear();
 }
 
@@ -45,7 +47,7 @@ CYdLidar::~CYdLidar()
 
 void CYdLidar::disconnecting()
 {
-    if(YDlidarDriver::singleton()){
+    if (YDlidarDriver::singleton()) {
         YDlidarDriver::singleton()->disconnect();
         YDlidarDriver::done();
     }
@@ -104,11 +106,11 @@ bool  CYdLidar::doProcessSimple(LaserScan &outscan, bool &hardwareError){
                     int inter =(int)( angle / each_angle );
                     float angle_pre = angle - inter * each_angle;
                     float angle_next = (inter+1) * each_angle - angle;
-                    if(angle_pre < angle_next){
+                    if (angle_pre < angle_next) {
                         if(inter < all_nodes_counts)
                             angle_compensate_nodes[inter]=nodes[i];
-                    }else{
-                        if(inter < all_nodes_counts -1)
+                    } else {
+                        if (inter < all_nodes_counts -1)
                             angle_compensate_nodes[inter+1]=nodes[i];
                     }
                 }
@@ -116,7 +118,7 @@ bool  CYdLidar::doProcessSimple(LaserScan &outscan, bool &hardwareError){
 
             LaserScan scan_msg;
 
-            if(m_MaxAngle< m_MinAngle){
+            if (m_MaxAngle< m_MinAngle) {
                 float temp = m_MinAngle;
                 m_MinAngle = m_MaxAngle;
                 m_MaxAngle = temp;
@@ -138,34 +140,34 @@ bool  CYdLidar::doProcessSimple(LaserScan &outscan, bool &hardwareError){
                 range = (float)angle_compensate_nodes[i].distance_q2/4.0f/1000;
                 intensity = (float)(angle_compensate_nodes[i].sync_quality >> LIDAR_RESP_MEASUREMENT_QUALITY_SHIFT);
 
-                if(i<all_nodes_counts/2){
+                if (i<all_nodes_counts/2) {
                     index = all_nodes_counts/2-1-i;
-                }else{
+                } else {
                     index =all_nodes_counts-1-(i-all_nodes_counts/2);
                 }
 
-                if(m_IgnoreArray.size() != 0){
+                if (m_IgnoreArray.size() != 0) {
                     float angle = (float)((angle_compensate_nodes[i].angle_q6_checkbit >> LIDAR_RESP_MEASUREMENT_ANGLE_SHIFT)/64.0f);
-                    if(angle>180){
+                    if (angle>180) {
                         angle=360-angle;
-                    }else{
+                    } else {
                         angle=-angle;
                     }
 
-                    for(uint16_t j = 0; j < m_IgnoreArray.size();j = j+2){
-                        if((m_IgnoreArray[j] < angle) && (angle <= m_IgnoreArray[j+1])){
+                    for (uint16_t j = 0; j < m_IgnoreArray.size();j = j+2) {
+                        if ((m_IgnoreArray[j] < angle) && (angle <= m_IgnoreArray[j+1])) {
                            range = 0.0;
                            break;
                         }
                     }
                 }
 
-                if(range > m_MaxRange|| range < m_MinRange){
+                if (range > m_MaxRange|| range < m_MinRange) {
                     range = 0.0;
                 }
 
                 int pos = index - node_start ;
-                if(0<= pos && pos < counts){
+                if (0<= pos && pos < counts) {
                     scan_msg.ranges[pos] =  range;
                     scan_msg.intensities[pos] = intensity;
                 }
@@ -186,11 +188,8 @@ bool  CYdLidar::doProcessSimple(LaserScan &outscan, bool &hardwareError){
 
 		}
 
-	}
-	else
-	{
-		if (op_result==RESULT_FAIL)
-		{
+    } else {
+        if (op_result==RESULT_FAIL) {
 			// Error? Retry connection
 			//this->disconnect();
 		}
@@ -207,7 +206,7 @@ bool  CYdLidar::doProcessSimple(LaserScan &outscan, bool &hardwareError){
 bool  CYdLidar::turnOn()
 {
     bool ret = false;
-    if (isScanning){
+    if (isScanning) {
 		YDlidarDriver::singleton()->startMotor();
         ret = true;
 	}
@@ -229,37 +228,40 @@ bool  CYdLidar::turnOff()
 }
 
 /** Returns true if the device is connected & operative */
-bool CYdLidar::getDeviceHealth() const
-{
+bool CYdLidar::getDeviceHealth() const {
 	if (!YDlidarDriver::singleton()) return false;
 
 	result_t op_result;
-        device_health healthinfo;
+    device_health healthinfo;
 
 	op_result = YDlidarDriver::singleton()->getHealth(healthinfo);
-    	if (op_result == RESULT_OK) { 
-        	printf("Yd Lidar running correctly ! The health status: %s\n", (int)healthinfo.status==0?"good":"bad");
-        
-        	if (healthinfo.status == 2) {
-            		fprintf(stderr, "Error, Yd Lidar internal error detected. Please reboot the device to retry.\n");
-           	 	return false;
-        	} else {
-            		return true;
-        	}
+    if (op_result == RESULT_OK) {
+        printf("Yd Lidar running correctly ! The health status: %s\n", (int)healthinfo.status==0?"good":"bad");
 
-    	} else {
-        	fprintf(stderr, "Error, cannot retrieve Yd Lidar health code: %x\n", op_result);
-        	return false;
-    	}
+        if (healthinfo.status == 2) {
+            if (show_error == 3)
+                fprintf(stderr, "Error, Yd Lidar internal error detected. Please reboot the device to retry.\n");
+            return false;
+        } else {
+                return true;
+        }
+
+    } else {
+        if (show_error == 3)
+            fprintf(stderr, "Error, cannot retrieve Yd Lidar health code: %x\n", op_result);
+        return false;
+    }
+
 }
 
-bool CYdLidar::getDeviceInfo(int &type){
+bool CYdLidar::getDeviceInfo(int &type) {
 
 	if (!YDlidarDriver::singleton()) return false;
 
 	device_info devinfo;
-	if (YDlidarDriver::singleton()->getDeviceInfo(devinfo) !=0){
-		fprintf(stderr, "get DeviceInfo Error\n" );
+    if (YDlidarDriver::singleton()->getDeviceInfo(devinfo) != RESULT_OK ) {
+        if (show_error == 3)
+            fprintf(stderr, "get DeviceInfo Error\n" );
 		return false;
 	}	 
 	std::string model;
@@ -269,7 +271,7 @@ bool CYdLidar::getDeviceInfo(int &type){
     int bad = 0;
 
     type = devinfo.model;
-    switch(devinfo.model){
+    switch (devinfo.model) {
         case 1:
             model="F4";
             break;
@@ -286,8 +288,8 @@ bool CYdLidar::getDeviceInfo(int &type){
         {
             model="G4";
             ans = YDlidarDriver::singleton()->getSamplingRate(_rate);
-            if(ans == RESULT_OK){
-                switch(m_SampleRate){
+            if (ans == RESULT_OK) {
+                switch (m_SampleRate) {
                 case 4:
                     _samp_rate=0;
                     break;
@@ -302,9 +304,9 @@ bool CYdLidar::getDeviceInfo(int &type){
                     break;
                 }
 
-                while(_samp_rate != _rate.rate){
+                while (_samp_rate != _rate.rate) {
                     ans = YDlidarDriver::singleton()->setSamplingRate(_rate);
-                    if(ans != RESULT_OK){
+                    if (ans != RESULT_OK) {
                         bad++;
                         if(bad>5){
                             break;
@@ -312,7 +314,7 @@ bool CYdLidar::getDeviceInfo(int &type){
                     }
                 }
 
-                switch(_rate.rate){
+                switch (_rate.rate) {
                     case 0:
                         _samp_rate = 4;
                         break;
@@ -339,8 +341,8 @@ bool CYdLidar::getDeviceInfo(int &type){
         {
             model="F4Pro";
             ans = YDlidarDriver::singleton()->getSamplingRate(_rate);
-            if(ans == RESULT_OK){
-                switch(m_SampleRate){
+            if (ans == RESULT_OK) {
+                switch (m_SampleRate) {
                 case 4:
                     _samp_rate=0;
                     break;
@@ -351,9 +353,9 @@ bool CYdLidar::getDeviceInfo(int &type){
                     _samp_rate = _rate.rate;
                     break;
                 }
-                while(_samp_rate != _rate.rate){
+                while (_samp_rate != _rate.rate) {
                     ans = YDlidarDriver::singleton()->setSamplingRate(_rate);
-                    if(ans != RESULT_OK){
+                    if (ans != RESULT_OK) {
                         bad++;
                         if(bad>5){
                             break;
@@ -361,7 +363,7 @@ bool CYdLidar::getDeviceInfo(int &type){
                     }
                 }
 
-                switch(_rate.rate){
+                switch (_rate.rate) {
                     case 0:
                         _samp_rate = 4;
                         break;
@@ -412,10 +414,10 @@ bool CYdLidar::getDeviceInfo(int &type){
 
 
         float freq = 7.0f;
-        if(devinfo.model == 5 || devinfo.model ==8 || devinfo.model == 9){
+        if (devinfo.model == 5 || devinfo.model ==8 || devinfo.model == 9) {
             checkScanFrequency();
             checkHeartBeat();
-        }else{
+        } else {
             printf("[YDLIDAR INFO] Current Scan Frequency : %fHz\n" , freq);
         }
 
@@ -432,29 +434,35 @@ bool CYdLidar::checkScanFrequency()
     float freq = 7.0f;
     scan_frequency _scan_frequency;
     int hz = 0;
-    if(5<=m_ScanFrequency&& m_ScanFrequency <= 12){
+    if (5 <= m_ScanFrequency && m_ScanFrequency <= 12) {
         result_t ans = YDlidarDriver::singleton()->getScanFrequency(_scan_frequency) ;
-        if(ans == RESULT_OK){
+        if (ans == RESULT_OK) {
             freq = _scan_frequency.frequency/100.f;
             hz = m_ScanFrequency - freq;
-            if(hz>0){
-                while(hz != 0){
+            if (hz>0) {
+                while (hz != 0) {
                     YDlidarDriver::singleton()->setScanFrequencyAdd(_scan_frequency);
                     hz--;
                 }
                 freq = _scan_frequency.frequency/100.0f;
-            }else{
-                while(hz != 0){
+            } else {
+                while (hz != 0) {
                     YDlidarDriver::singleton()->setScanFrequencyDis(_scan_frequency);
                     hz++;
                 }
                 freq = _scan_frequency.frequency/100.0f;
             }
         }
-        if(m_ScanFrequency < 7&&m_SampleRate ==9){
-            node_counts = 1800;
-            each_angle = 0.2;
+        if (m_ScanFrequency < 7 && m_SampleRate>6) {
+            node_counts = 1600;
+
+        } else if ( m_ScanFrequency < 6 && m_SampleRate == 9) {
+            node_counts = 2000;
+
+        } else if ( m_ScanFrequency < 6 && m_SampleRate == 4) {
+            node_counts = 900;
         }
+        each_angle = 360.0/node_counts;
     }
 
     printf("[YDLIDAR INFO] Current Scan Frequency : %fHz\n" , freq);
@@ -472,19 +480,19 @@ bool CYdLidar::checkHeartBeat() const
     bool ret = false;
     scan_heart_beat beat;
     result_t ans = YDlidarDriver::singleton()->setScanHeartbeat(beat);
-    if(m_HeartBeat){
-        if(beat.enable&& ans == RESULT_OK){
+    if (m_HeartBeat) {
+        if (beat.enable&& ans == RESULT_OK) {
             ans = YDlidarDriver::singleton()->setScanHeartbeat(beat);
         }
-        if(!beat.enable&& ans == RESULT_OK ){
+        if (!beat.enable&& ans == RESULT_OK ) {
             YDlidarDriver::singleton()->setHeartBeat(true);
             ret = true;
         }
-    }else{
-        if(!beat.enable&& ans == RESULT_OK){
+    } else {
+        if (!beat.enable&& ans == RESULT_OK) {
             ans = YDlidarDriver::singleton()->setScanHeartbeat(beat);
         }
-        if(beat.enable && ans==RESULT_OK){
+        if (beat.enable && ans==RESULT_OK) {
             YDlidarDriver::singleton()->setHeartBeat(false);
             ret = true;
         }
@@ -499,25 +507,23 @@ bool CYdLidar::checkHeartBeat() const
 -------------------------------------------------------------*/
 bool  CYdLidar::checkCOMMs()
 {
-    if (!YDlidarDriver::singleton()){
+    if (!YDlidarDriver::singleton()) {
         // create the driver instance
         YDlidarDriver::initDriver();
-        if(!YDlidarDriver::singleton()){
+        if (!YDlidarDriver::singleton()) {
              fprintf(stderr, "Create Driver fail\n");
             return false;
 
         }
 
     }
-    if(YDlidarDriver::singleton()->isconnected()){
+    if (YDlidarDriver::singleton()->isconnected()) {
         return true;
     }
 
 	// Is it COMX, X>4? ->  "\\.\COMX"
-    if (m_SerialPort.size()>=3)
-	{
-        if ( tolower( m_SerialPort[0]) =='c' && tolower( m_SerialPort[1]) =='o' && tolower( m_SerialPort[2]) =='m' )
-		{
+    if (m_SerialPort.size()>=3) {
+        if ( tolower( m_SerialPort[0]) =='c' && tolower( m_SerialPort[1]) =='o' && tolower( m_SerialPort[2]) =='m' ) {
 			// Need to add "\\.\"?
             if (m_SerialPort.size()>4 || m_SerialPort[3]>'4')
                 m_SerialPort = std::string("\\\\.\\") + m_SerialPort;
@@ -526,8 +532,7 @@ bool  CYdLidar::checkCOMMs()
 
 	// make connection...
     result_t op_result = YDlidarDriver::singleton()->connect(m_SerialPort.c_str(), m_SerialBaudrate);
-	if (op_result != RESULT_OK)
-	{
+    if (op_result != RESULT_OK) {
         fprintf(stderr, "[CYdLidar] Error, cannot bind to the specified serial port %s\n",  m_SerialPort.c_str() );
 		return false;
 	}
@@ -541,31 +546,65 @@ bool  CYdLidar::checkCOMMs()
 bool CYdLidar::checkStatus()
 {
 
-    if(!YDlidarDriver::singleton())
+    if (!YDlidarDriver::singleton())
         return false;
-    if(YDlidarDriver::singleton()->isscanning())
+    if (YDlidarDriver::singleton()->isscanning())
         return true;
+
+    std::map<int, bool> checkmodel;
+    checkmodel.insert(std::map<int, bool>::value_type(115200, false));
+    checkmodel.insert(std::map<int, bool>::value_type(128000, false));
+    checkmodel.insert(std::map<int, bool>::value_type(153600, false));
+    checkmodel.insert(std::map<int, bool>::value_type(230400, false));
+
+    again:
     // check health:
     bool ret = getDeviceHealth();
 
     int m_type;
-    if(!getDeviceInfo(m_type)&&!ret)
-        return false;
+    if (!getDeviceInfo(m_type)&&!ret){
+        checkmodel[m_SerialBaudrate] = true;
+        map<int,bool>::iterator it;
+        for (it=checkmodel.begin(); it!=checkmodel.end(); ++it) {
+            if(it->second)
+                continue;
 
-    if(m_type != 4){
-        m_Intensities = false;
-    }else{
-        if(m_Intensities){
+            show_error++;
+            YDlidarDriver::singleton()->disconnect();
+            YDlidarDriver::done();
+            YDlidarDriver::initDriver();
+            if (!YDlidarDriver::singleton()) {
+                printf("YDLIDAR Create Driver fail, exit\n");
+                return false;
+            }
+            m_SerialBaudrate = it->first;
+
+            bool ret = checkCOMMs();
+            if (!ret) {
+                return false;
+            }
+            goto again;
+        }
+
+        return false;
+    }
+
+    show_error = 0;
+    m_Intensities = false;
+    if (m_type == 4) {
+        if (m_SerialBaudrate == 153600)
+            m_Intensities = true;
+        if (m_Intensities) {
             scan_exposure exposure;
             int cnt = 0;
-            while((YDlidarDriver::singleton()->setLowExposure(exposure) == RESULT_OK) && (cnt<3)){
-                if(exposure.exposure != m_Exposure){
+            while ((YDlidarDriver::singleton()->setLowExposure(exposure) == RESULT_OK) && (cnt<3)) {
+                if (exposure.exposure != m_Exposure) {
                         printf("set EXPOSURE MODEL SUCCESS!!!\n");
                         break;
                 }
                 cnt++;
             }
-            if(cnt>=3){
+            if (cnt>=3) {
 
                 fprintf(stderr,"set LOW EXPOSURE MODEL FALIED!!!\n");
             }
@@ -576,8 +615,7 @@ bool CYdLidar::checkStatus()
 
      // start scan...
     result_t s_result= YDlidarDriver::singleton()->startScan();
-    if (s_result !=RESULT_OK)
-    {
+    if (s_result != RESULT_OK) {
         fprintf(stderr, "[CYdLidar] Error starting scanning mode: %x\n", s_result);
         isScanning = false;
         return false;
@@ -596,12 +634,11 @@ bool CYdLidar::checkStatus()
 bool CYdLidar::checkHardware()
 {
     bool ret = true;
-    if (!isScanning)
-    {
+    if (!isScanning) {
         ret = false;
-        if(checkCOMMs()){
-            if(checkStatus()){
-                if(turnOn()){
+        if (checkCOMMs()) {
+            if (checkStatus()) {
+                if (turnOn()) {
                     ret = true;
                 }
             }
@@ -617,14 +654,14 @@ bool CYdLidar::checkHardware()
 bool CYdLidar::initialize()
 {
 	bool ret = true;
-	if (!checkCOMMs()){
+    if (!checkCOMMs()) {
         fprintf(stderr,"[CYdLidar::initialize] Error initializing YDLIDAR scanner.\n");
         return false;
 	}
-    if(!checkStatus()){
+    if (!checkStatus()) {
         fprintf(stderr,"[CYdLidar::initialize] Error initializing YDLIDAR scanner.because of failure in scan mode.\n");
     }
-	if (!turnOn()){
+    if (!turnOn()) {
         fprintf(stderr,"[CYdLidar::initialize] Error initializing YDLIDAR scanner. Because the motor falied to start.\n");
 		
 	}

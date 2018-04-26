@@ -27,7 +27,7 @@ namespace serial {
 
 	class Serial::ScopedReadLock {
 	public:
-		ScopedReadLock(SerialImpl *pimpl) : pimpl_(pimpl) {
+        explicit ScopedReadLock(SerialImpl *pimpl) : pimpl_(pimpl) {
 			this->pimpl_->readLock();
 		}
 		~ScopedReadLock() {
@@ -43,7 +43,7 @@ namespace serial {
 
 	class Serial::ScopedWriteLock {
 	public:
-		ScopedWriteLock(SerialImpl *pimpl) : pimpl_(pimpl) {
+        explicit ScopedWriteLock(SerialImpl *pimpl) : pimpl_(pimpl) {
 			this->pimpl_->writeLock();
 		}
 		~ScopedWriteLock() {

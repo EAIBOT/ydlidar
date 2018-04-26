@@ -137,7 +137,7 @@ namespace serial {
 		* \throw serial::IOException
 		* \throw std::invalid_argument
 		*/
-		Serial (const std::string &port = "",
+        explicit Serial (const std::string &port = "",
 			uint32_t baudrate = 9600,
 			Timeout timeout = Timeout(),
 			bytesize_t bytesize = eightbits,
@@ -547,7 +547,7 @@ namespace serial {
 
 	private:
 		// Disable copy constructors
-		Serial(const Serial&);
+        Serial(const Serial&);
 		Serial& operator=(const Serial&);
 
 		// Pimpl idiom, d_pointer

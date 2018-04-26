@@ -265,7 +265,7 @@ namespace ydlidar{
 		* @retval true     正在扫图
     	* @retval false    扫图关闭
     	*/
-		const bool isscanning();
+        const bool isscanning() const;
 
 		/**
 		* @brief 连接雷达状态 \n
@@ -273,7 +273,7 @@ namespace ydlidar{
 		* @retval true     成功
     	* @retval false    失败
     	*/
-        const bool isconnected();
+        const bool isconnected() const;
 
 		/**
 		* @brief 设置雷达是否带信号质量 \n
@@ -291,7 +291,7 @@ namespace ydlidar{
     	* @retval true     掉电保护开启
     	* @retval false    掉电保护关闭
     	*/
-		const bool getHeartBeat();
+        const bool getHeartBeat() const;
 
 		/**
 		* @brief 设置雷达掉电保护使能 \n
@@ -710,7 +710,7 @@ namespace ydlidar{
     	* @retval RESULT_FAILE    获取失败	
 		* @note 当timeout = -1 时, 将一直等待
     	*/
-		result_t waitForData(size_t data_count,uint32_t timeout = -1, size_t * returned_size = NULL);
+        result_t waitForData(size_t data_count,uint32_t timeout = DEFAULT_TIMEOUT, size_t * returned_size = NULL);
 
 		/**
 		* @brief 获取串口数据 \n
@@ -777,7 +777,7 @@ namespace ydlidar{
 		Thread 	       _thread;				///< 线程id
 
 	private:
-		static int PackageSampleBytes;		///< 一个包包含的激光点数
+        int PackageSampleBytes;             ///< 一个包包含的激光点数
 		static YDlidarDriver* _impl;		///< YDlidarDriver 
 		serial::Serial *_serial;			///< 串口
 		bool m_intensities;					///< 信号质量状体
@@ -789,6 +789,22 @@ namespace ydlidar{
 		uint64_t m_calc_ns;					///< 时间戳
 		uint32_t m_pointTime;				///< 激光点直接时间间隔
 		uint32_t trans_delay;				///< 串口传输一个byte时间
+
+        node_package package;
+        node_packages packages;
+
+        uint16_t package_Sample_Index;
+        float IntervalSampleAngle;
+        float IntervalSampleAngle_LastPackage;
+        uint16_t FirstSampleAngle;
+        uint16_t LastSampleAngle;
+        uint16_t CheckSun;
+
+        uint16_t CheckSunCal;
+        uint16_t SampleNumlAndCTCal;
+        uint16_t LastSampleAngleCal;
+        bool CheckSunResult;
+        uint16_t Valu8Tou16;
 
 	};
 }

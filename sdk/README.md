@@ -1,4 +1,4 @@
-YDLIDAR SDK PACKAGE V1.3.1
+YDLIDAR SDK PACKAGE V1.3.2
 =====================================================================
 
 SDK test application for YDLIDAR
@@ -21,6 +21,12 @@ You should see YDLIDAR's scan result in the console
 
 Upgrade Log
 =====================================================================
+
+2018-04-16 version:1.3.2
+
+   1.add multithreading support.
+
 2018-04-16 version:1.3.1
+
    1.Compensate for each laser point timestamp.
 

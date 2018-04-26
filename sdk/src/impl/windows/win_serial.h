@@ -116,7 +116,7 @@ namespace serial {
 
     public:
         enum {
-            DEFAULT_RX_BUFFER_SIZE = 4096*4,
+            DEFAULT_RX_BUFFER_SIZE = 2048,
             DEFAULT_TX_BUFFER_SIZE = 128,
         };
 

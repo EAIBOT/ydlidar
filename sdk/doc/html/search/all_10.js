@@ -52,7 +52,7 @@ var searchData=
   ['startmotor',['startMotor',['../classydlidar_1_1_y_dlidar_driver.html#a2e686ef1ce60f3241352a798330f760b',1,'ydlidar::YDlidarDriver']]],
   ['startscan',['startScan',['../classydlidar_1_1_y_dlidar_driver.html#a62888da8520422b7daaae89c2935460b',1,'ydlidar::YDlidarDriver']]],
   ['status',['status',['../structdevice__health.html#ac3425f5555ecbb5a0da03b4cabe2777c',1,'device_health']]],
-  ['stop',['stop',['../classydlidar_1_1_y_dlidar_driver.html#a7aa354e88eeb6984be4d18eae6367a0b',1,'ydlidar::YDlidarDriver::stop()'],['../classydlidar_1_1_y_dlidar_driver.html#a7aa354e88eeb6984be4d18eae6367a0b',1,'ydlidar::YDlidarDriver::stop()']]],
+  ['stop',['stop',['../classydlidar_1_1_y_dlidar_driver.html#a7aa354e88eeb6984be4d18eae6367a0b',1,'ydlidar::YDlidarDriver']]],
   ['stopbits_5ft',['stopbits_t',['../namespaceserial.html#af5b116611d6628a3aa8f788fdc09f469',1,'serial']]],
   ['stopmotor',['stopMotor',['../classydlidar_1_1_y_dlidar_driver.html#a6cdf0c5a7ddf2375c1392c3a0e65edfe',1,'ydlidar::YDlidarDriver']]],
   ['system_5ftime_5fstamp',['system_time_stamp',['../struct_laser_scan.html#a1bb6b997ce698fbc516bc20ab3ba3399',1,'LaserScan']]]
