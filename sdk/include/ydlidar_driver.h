@@ -576,7 +576,7 @@ namespace ydlidar{
     	* @return 返回执行结果
     	* @retval RESULT_OK       成功
     	* @retval RESULT_FAILE    失败
-		* @note 停止扫描后再执行当前操作, 当前操作是开关量
+		* @note 停止扫描后再执行当前操作, 当前操作是开关量,只有S4雷达支持此功能
     	*/
 		result_t setLowExposure(scan_exposure& low_exposure, uint32_t timeout = DEFAULT_TIMEOUT);
 
