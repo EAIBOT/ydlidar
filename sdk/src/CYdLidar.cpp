@@ -180,7 +180,7 @@ bool  CYdLidar::doProcessSimple(LaserScan &outscan, bool &hardwareError){
             scan_msg.config.ang_increment = (scan_msg.config.max_angle - scan_msg.config.min_angle) / (double)counts;
             scan_msg.config.time_increment = scan_time / (double)counts;
             scan_msg.config.scan_time = scan_time;
-            scan_msg.config.min_angle = m_MinRange;
+            scan_msg.config.min_range = m_MinRange;
             scan_msg.config.max_range = m_MaxRange;
             outscan = scan_msg;
             return true;
