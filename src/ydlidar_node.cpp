@@ -119,6 +119,7 @@ bool getDeviceInfo(std::string port , int& samp_rate, double _frequency, int bau
     std::string model;
     float freq = 7.0f;
     int hz = 0;
+    int number = 0;
     type = devinfo.model;
     switch(devinfo.model){
             case 1:
@@ -151,7 +152,8 @@ bool getDeviceInfo(std::string port , int& samp_rate, double _frequency, int bau
                         _samp_rate = _rate.rate;
                         break;
                 }
-                while(_samp_rate != _rate.rate){
+                while(_samp_rate != _rate.rate&& number <4){
+		    number++;
                     YDlidarDriver::singleton()->setSamplingRate(_rate);                    
                 } 
                 switch(_rate.rate){
