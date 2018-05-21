@@ -15,6 +15,10 @@
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
 #endif
 
+#ifndef M_PI
+#define M_PI 3.1415926
+#endif
+
 #define LIDAR_CMD_STOP                      0x65
 #define LIDAR_CMD_SCAN                      0x60
 #define LIDAR_CMD_FORCE_SCAN                0x61
@@ -80,10 +84,11 @@ typedef enum {
 #endif
 
 struct node_info {
-	uint8_t    sync_quality;
-	uint16_t   angle_q6_checkbit;
-	uint16_t   distance_q2;
-	uint64_t   stamp;
+    uint8_t    sync_quality;//!信号质量
+    uint16_t   angle_q6_checkbit; //!测距点角度
+    uint16_t   distance_q2; //! 当前测距点距离
+    uint64_t   stamp; //! 时间戳
+    uint8_t    scan_frequence;//! 特定版本此值才有效,无效值是0, 当前扫描频率current_frequence = scan_frequence/10.0
 } __attribute__((packed)) ;
 
 struct PackageNode {
@@ -196,6 +201,14 @@ struct LaserConfig {
 
 
 //! A struct for returning laser readings from the YDLIDAR
+//! currentAngle = min_angle + ang_increment*index
+//! for( int i =0; i < ranges.size(); i++) {
+//!     double currentAngle = config.min_angle + i*config.ang_increment;
+//!     double currentDistance = ranges[i];
+//! }
+//!
+//!
+//!
 struct LaserScan {
 	//! Array of ranges
 	std::vector<float> ranges;
@@ -281,9 +294,9 @@ namespace ydlidar{
     	* @param[in] isintensities    是否带信号质量:
 		*     true	带信号质量
 		*	  false 无信号质量
-    	* @note只有S4B雷达支持带信号质量, 别的型号雷达暂不支持
+        * @note只有S4B(波特率是153600)雷达支持带信号质量, 别的型号雷达暂不支持
     	*/
-		void setIntensities(const bool isintensities);
+        void setIntensities(const bool& isintensities);
 
 		/**
 		* @brief 获取当前雷达掉电保护功能 \n
@@ -299,17 +312,9 @@ namespace ydlidar{
 		*     true	开启
 		*	  false 关闭
     	* @note只有(G4, G4C, F4PRO)雷达支持掉电保护功能, 别的型号雷达暂不支持
+        * 并且版本号大于等于2.0.9 才支持此功能, 小于2.0.9版本禁止开启掉电保护
     	*/
-        void setHeartBeat(const bool enable);
-
-		/**
-		* @brief 发送掉电保护命令 \n
-    	* @return 返回执行结果
-    	* @retval RESULT_OK       发送成功
-    	* @retval RESULT_FAILE    发送失败
-    	* @note只有(G4, G4C, F4PRO)雷达支持掉电保护功能, 别的型号雷达暂不支持
-    	*/
-        result_t sendHeartBeat();
+        void setHeartBeat(const bool& enable);
 
 		/**
 		* @brief 获取雷达设备健康状态 \n
@@ -609,7 +614,7 @@ namespace ydlidar{
     	* @return 返回执行结果
     	* @retval RESULT_OK       成功
     	* @retval RESULT_FAILE    失败
-		* @note 停止扫描后再执行当前操作, 当前操作是开关量, (G4, G4C, F4PRO)支持
+        * @note 停止扫描后再执行当前操作, 当前操作是开关量, (G4, G4C, F4PRO)版本号大于等于2.0.9才支持
     	*/
         result_t setScanHeartbeat(scan_heart_beat& beat,uint32_t timeout = DEFAULT_TIMEOUT);
 
@@ -732,6 +737,15 @@ namespace ydlidar{
     	*/
 		result_t sendData(const uint8_t * data, size_t size);
 
+        /**
+        * @brief 发送掉电保护命令 \n
+        * @return 返回执行结果
+        * @retval RESULT_OK       发送成功
+        * @retval RESULT_FAILE    发送失败
+        * @note只有(G4, G4C, F4PRO)雷达支持掉电保护功能, 别的型号雷达暂不支持
+        */
+        result_t sendHeartBeat();
+
 
 		/**
 		* @brief 关闭数据获取通道 \n
@@ -789,6 +803,7 @@ namespace ydlidar{
 		uint64_t m_calc_ns;					///< 时间戳
 		uint32_t m_pointTime;				///< 激光点直接时间间隔
 		uint32_t trans_delay;				///< 串口传输一个byte时间
+        uint16_t firmware_version;          ///< 雷达固件版本号
 
         node_package package;
         node_packages packages;

@@ -2,9 +2,6 @@
 #include "common.h"
 #include <map>
 
-#ifndef _countof
-#define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
-#endif
 
 
 using namespace std;
@@ -66,7 +63,7 @@ bool  CYdLidar::doProcessSimple(LaserScan &outscan, bool &hardwareError){
         return false;
 	}
 
-    node_info nodes[node_counts];
+    node_info nodes[2048];
     size_t   count = _countof(nodes);
 
     size_t all_nodes_counts = node_counts;
@@ -87,12 +84,14 @@ bool  CYdLidar::doProcessSimple(LaserScan &outscan, bool &hardwareError){
 		const double scan_time = tim_scan_end - tim_scan_start;
 		if (op_result == RESULT_OK)
 		{
-            if(m_FixedResolution){
+            if(!m_FixedResolution){
                 all_nodes_counts = count;
+            } else {
+                all_nodes_counts = node_counts;
             }
             each_angle = 360.0/all_nodes_counts;
 
-            node_info angle_compensate_nodes[all_nodes_counts];
+            node_info *angle_compensate_nodes = new node_info[all_nodes_counts];
             memset(angle_compensate_nodes, 0, all_nodes_counts*sizeof(node_info));
             unsigned int i = 0;
             for( ; i < count; i++) {
@@ -183,6 +182,7 @@ bool  CYdLidar::doProcessSimple(LaserScan &outscan, bool &hardwareError){
             scan_msg.config.min_range = m_MinRange;
             scan_msg.config.max_range = m_MaxRange;
             outscan = scan_msg;
+            delete[] angle_compensate_nodes;
             return true;
 
 
@@ -393,6 +393,7 @@ bool CYdLidar::getDeviceInfo(int &type) {
     unsigned int maxv = (unsigned int)(devinfo.firmware_version>>8);
     unsigned int midv = (unsigned int)(devinfo.firmware_version&0xff)/10;
     unsigned int minv = (unsigned int)(devinfo.firmware_version&0xff)%10;
+    fprintf(stderr, "firmware: %i\n", devinfo.firmware_version);
 
 	printf("[YDLIDAR] Connection established in [%s]:\n"
 			   "Firmware version: %u.%u.%u\n"
@@ -562,7 +563,7 @@ bool CYdLidar::checkStatus()
     bool ret = getDeviceHealth();
 
     int m_type;
-    if (!getDeviceInfo(m_type)&&!ret){
+    if (!ret || !getDeviceInfo(m_type)){
         checkmodel[m_SerialBaudrate] = true;
         map<int,bool>::iterator it;
         for (it=checkmodel.begin(); it!=checkmodel.end(); ++it) {

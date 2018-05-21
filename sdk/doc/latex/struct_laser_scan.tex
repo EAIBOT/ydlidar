@@ -2,11 +2,6 @@
 \label{struct_laser_scan}\index{Laser\+Scan@{Laser\+Scan}}
 
 
-A struct for returning laser readings from the Y\+D\+L\+I\+D\+AR.  
-
-
-
-
 {\ttfamily \#include $<$ydlidar\+\_\+driver.\+h$>$}
 
 
@@ -39,7 +34,7 @@ uint64\+\_\+t \hyperlink{struct_laser_scan_a1bb6b997ce698fbc516bc20ab3ba3399}{sy
 
 
 \subsection{Detailed Description}
-A struct for returning laser readings from the Y\+D\+L\+I\+D\+AR. 
+A struct for returning laser readings from the Y\+D\+L\+I\+D\+AR current\+Angle = min\+\_\+angle + ang\+\_\+increment$\ast$index for( int i =0; i $<$ ranges.\+size(); i++) \{ double current\+Angle = config.\+min\+\_\+angle + i$\ast$config.ang\+\_\+increment; double current\+Distance = ranges\mbox{[}i\mbox{]}; \} 
 
 The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
 \item 

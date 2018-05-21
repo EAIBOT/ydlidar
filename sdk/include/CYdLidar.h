@@ -4,7 +4,11 @@
 #include "ydlidar_driver.h"
 #include <math.h>
 
-
+#if !defined(__cplusplus)
+#ifndef __cplusplus
+#error "The YDLIDAR SDK requires a C++ compiler to be built"
+#endif
+#endif
 #define PropertyBuilderByName(type, name, access_permission)\
     access_permission:\
         type m_##name;\
@@ -16,27 +20,35 @@
         return m_##name;\
 }\
 
+#ifndef _countof
+#define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
+#endif
+
+#ifndef M_PI
+#define M_PI 3.1415926
+#endif
+
 #define DEG2RAD(x) ((x)*M_PI/180.)
 
 class YDLIDAR_API CYdLidar
 {
-    PropertyBuilderByName(float,MaxRange,private)
-    PropertyBuilderByName(float,MinRange,private)
-    PropertyBuilderByName(float,MaxAngle,private)
-    PropertyBuilderByName(float,MinAngle,private)
-    PropertyBuilderByName(int,ScanFrequency,private)
+    PropertyBuilderByName(float,MaxRange,private)///< 设置和获取激光最大测距范围
+    PropertyBuilderByName(float,MinRange,private)///< 设置和获取激光最小测距范围
+    PropertyBuilderByName(float,MaxAngle,private)///< 设置和获取激光最大角度, 最大值180度
+    PropertyBuilderByName(float,MinAngle,private)///< 设置和获取激光最小角度, 最小值-180度
+    PropertyBuilderByName(int,ScanFrequency,private)///< 设置和获取激光扫描频率(范围5HZ~12HZ)
 
-    PropertyBuilderByName(bool,Intensities,private)
-    PropertyBuilderByName(bool,FixedResolution,private)
-    PropertyBuilderByName(bool,Exposure,private)
-    PropertyBuilderByName(bool,HeartBeat,private)
-    PropertyBuilderByName(bool,Reversion, private)
+    PropertyBuilderByName(bool,Intensities,private)///< 设置和获取激光带信号质量(只有S4B雷达支持)
+    PropertyBuilderByName(bool,FixedResolution,private)///< 设置和获取激光是否是固定角度分辨率
+    PropertyBuilderByName(bool,Exposure,private)///< 设置和获取激光时候开启低光功率曝光模式 只有S4雷达支持
+    PropertyBuilderByName(bool,HeartBeat,private)///< 设置和获取激光是否开启掉电保护, 之后版本号大于等于2.0.9的(G4, F4PRO, G4C)支持
+    PropertyBuilderByName(bool,Reversion, private)///< 设置和获取是否旋转激光180度
 
-    PropertyBuilderByName(int,SerialBaudrate,private)
-    PropertyBuilderByName(int,SampleRate,private)
+    PropertyBuilderByName(int,SerialBaudrate,private)///< 设置和获取激光通讯波特率
+    PropertyBuilderByName(int,SampleRate,private)///< 设置和获取激光采样频率
 
-    PropertyBuilderByName(std::string,SerialPort,private)
-    PropertyBuilderByName(std::vector<float>,IgnoreArray,private)
+    PropertyBuilderByName(std::string,SerialPort,private)///< 设置和获取激光端口号
+    PropertyBuilderByName(std::vector<float>,IgnoreArray,private)///< 设置和获取激光剔除点
 
 
 public:

@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.11"/>
-<title>YDLIDAR SDK: YDLIDAR SDK PACKAGE V1.3.2</title>
+<title>YDLIDAR SDK: YDLIDAR SDK PACKAGE V1.3.3</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -25,7 +25,7 @@
   <td id="projectlogo"><img alt="Logo" src="app(2).png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">YDLIDAR SDK
-   &#160;<span id="projectnumber">V1.3.2</span>
+   &#160;<span id="projectnumber">V1.3.3</span>
    </div>
   </td>
  </tr>
@@ -79,17 +79,37 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="headertitle">
-<div class="title">YDLIDAR SDK PACKAGE V1.3.2 </div>  </div>
+<div class="title">YDLIDAR SDK PACKAGE V1.3.3 </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>SDK test application for YDLIDAR</p>
-<p>Visit EAI Website for more details about YDLIDAR.</p>
+<div class="textblock"><p>SDK <a href="https://github.com/yangfuyuan/sdk">test</a> application for YDLIDAR</p>
+<p>Visit EAI Website for more details about <a href="http://www.ydlidar.com/">YDLIDAR</a> .</p>
 <h1>How to build YDLIDAR SDK samples </h1>
-<p>1) Clone this project to your computer folder 2) Clone this project to your computer folder 2) Running cmake to build ydlidar_test</p>
+<p>$ git clone <a href="https://github.com/yangfuyuan/sdk">https://github.com/yangfuyuan/sdk</a> $ cd sdk $ git checkout master $ cd .. $ mkdir build $ cd build $ cmake ../sdk $ make ###linux $ vs open Project.sln ###windows</p>
 <h1>How to run YDLIDAR SDK samples </h1>
-<p>&ndash;$ cd samples &ndash;$ ./ydlidar_test /dev/ttyUSB0 115200 0</p>
-<p>You should see YDLIDAR's scan result in the console</p>
-<h1>Upgrade Log </h1>
+<p>$ cd samples</p>
+<p>linux: </p><pre class="fragment">$ ./ydlidar_test
+$Please enter the lidar port:/dev/ttyUSB0
+$Please enter the lidar baud rate:230400
+</pre><p>windows: </p><pre class="fragment">$ ydlidar_test.exe
+$Please enter the lidar port:COM3
+$Please enter the lidar baud rate:230400
+</pre><p>===================================================================== You should see YDLIDAR's scan result in the console: </p><pre class="fragment">Yd Lidar running correctly ! The health status: good
+[YDLIDAR] Connection established in [/dev/ttyUSB0]:
+Firmware version: 2.0.9
+Hardware version: 2
+Model: G4
+Serial: 2018022700000003
+[YDLIDAR INFO] Current Sampling Rate : 9K
+[YDLIDAR INFO] Current Scan Frequency : 7.400000Hz
+[YDLIDAR INFO] Now YDLIDAR is scanning ......
+Scan received: 43 ranges
+Scan received: 1361 ranges
+Scan received: 1412 ranges
+</pre><h1>Upgrade Log </h1>
+<p>2018-05-14 version:1.3.3</p>
+<p>1.add the heart function constraint.</p>
+<p>2.add packet type with scan frequency support.</p>
 <p>2018-04-16 version:1.3.2</p>
 <p>1.add multithreading support.</p>
 <p>2018-04-16 version:1.3.1</p>

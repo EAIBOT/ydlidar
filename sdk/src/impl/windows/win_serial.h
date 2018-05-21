@@ -5,7 +5,17 @@
 
 #include "serial.h"
 #include "time.h"
+#include <tchar.h>
+
+#ifndef UNICODE
+#define UNICODE
+#define UNICODE_WAS_UNDEFINED
+#endif
 #include "windows.h"
+
+#ifndef UNICODE_WAS_UNDEFINED
+#undef UNICODE
+#endif
 
 namespace serial {
 

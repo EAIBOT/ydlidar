@@ -1,18 +1,49 @@
-S\+DK test application for Y\+D\+L\+I\+D\+AR
+S\+DK \href{https://github.com/yangfuyuan/sdk}{\tt test} application for Y\+D\+L\+I\+D\+AR
 
-Visit E\+AI Website for more details about Y\+D\+L\+I\+D\+AR.
+Visit E\+AI Website for more details about \href{http://www.ydlidar.com/}{\tt Y\+D\+L\+I\+D\+AR} .
 
 \section*{How to build Y\+D\+L\+I\+D\+AR S\+DK samples }
 
-1) Clone this project to your computer folder 2) Clone this project to your computer folder 2) Running cmake to build ydlidar\+\_\+test
+\$ git clone \href{https://github.com/yangfuyuan/sdk}{\tt https\+://github.\+com/yangfuyuan/sdk} \$ cd sdk \$ git checkout master \$ cd .. \$ mkdir build \$ cd build \$ cmake ../sdk \$ make \#\#\#linux \$ vs open Project.\+sln \#\#\#windows
 
 \section*{How to run Y\+D\+L\+I\+D\+AR S\+DK samples }
 
---\$ cd samples --\$ ./ydlidar\+\_\+test /dev/tty\+U\+S\+B0 115200 0
+\$ cd samples
 
-You should see Y\+D\+L\+I\+D\+AR\textquotesingle{}s scan result in the console
+linux\+: \begin{DoxyVerb}$ ./ydlidar_test
+$Please enter the lidar port:/dev/ttyUSB0
+$Please enter the lidar baud rate:230400
+\end{DoxyVerb}
+
+
+windows\+: \begin{DoxyVerb}$ ydlidar_test.exe
+$Please enter the lidar port:COM3
+$Please enter the lidar baud rate:230400
+\end{DoxyVerb}
+
+
+===================================================================== You should see Y\+D\+L\+I\+D\+AR\textquotesingle{}s scan result in the console\+: \begin{DoxyVerb}Yd Lidar running correctly ! The health status: good
+[YDLIDAR] Connection established in [/dev/ttyUSB0]:
+Firmware version: 2.0.9
+Hardware version: 2
+Model: G4
+Serial: 2018022700000003
+[YDLIDAR INFO] Current Sampling Rate : 9K
+[YDLIDAR INFO] Current Scan Frequency : 7.400000Hz
+[YDLIDAR INFO] Now YDLIDAR is scanning ......
+Scan received: 43 ranges
+Scan received: 1361 ranges
+Scan received: 1412 ranges
+\end{DoxyVerb}
+
 
 \section*{Upgrade Log }
+
+2018-\/05-\/14 version\+:1.\+3.\+3
+
+1.\+add the heart function constraint.
+
+2.\+add packet type with scan frequency support.
 
 2018-\/04-\/16 version\+:1.\+3.\+2
 

@@ -128,6 +128,7 @@ namespace serial {
 	private:
 		string port_;               // Path to the file descriptor
 		int fd_;                    // The current file descriptor
+		pid_t pid;
 
 		bool is_open_;
 		bool xonxoff_;

@@ -26,6 +26,7 @@ namespace ydlidar{
 		isSupportMotorCtrl=true;
 		_sampling_rate=-1;
 		model = -1;
+        firmware_version = 0;
 
         //解析参数
         PackageSampleBytes = 2;
@@ -326,7 +327,7 @@ namespace ydlidar{
 			}
 
 			//heartbeat function
-			if(isHeartbeat){
+            if (isHeartbeat) {
                 end_ts = getms();
                 if(end_ts - start_ts > DEFAULT_HEART_BEAT){
                     sendHeartBeat();
@@ -353,6 +354,8 @@ namespace ydlidar{
 		uint8_t  package_Sample_Num = 0;
 		int32_t AngleCorrectForDistance;
 		int  package_recvPos = 0;
+        uint8_t package_type;
+        uint8_t scan_frequence;
 
 		if(package_Sample_Index == 0) {
 			recvPos = 0;
@@ -395,8 +398,12 @@ namespace ydlidar{
 						break;
 					case 2:
 						SampleNumlAndCTCal = currentByte;
-						if ((currentByte == CT_Normal) || (currentByte == CT_RingStart)){
-
+                        package_type = currentByte&0x01;
+                        if ((package_type == CT_Normal) || (package_type == CT_RingStart)){
+                            if(package_type == CT_RingStart){
+                                scan_frequence = (currentByte&0xFE)>>1;
+                                (*node).scan_frequence = scan_frequence;
+                            }
 						} else {
 							recvPos = 0;
 							continue;
@@ -807,6 +814,7 @@ namespace ydlidar{
 			}
 			getData(reinterpret_cast<uint8_t *>(&info), sizeof(info));
 			model = info.model;
+            firmware_version = info.firmware_version;
 		}
 
 		return RESULT_OK;
@@ -815,7 +823,7 @@ namespace ydlidar{
 	/************************************************************************/
 	/* the set to signal quality                                            */
 	/************************************************************************/
-	void YDlidarDriver::setIntensities(const bool isintensities){
+    void YDlidarDriver::setIntensities(const bool& isintensities){
 		m_intensities = isintensities;
 		if(m_intensities){
 			PackageSampleBytes = 3;
@@ -836,7 +844,7 @@ namespace ydlidar{
 	/************************************************************************/
 	/* set heartbeat function status                                        */
 	/************************************************************************/
-    void YDlidarDriver::setHeartBeat(const bool enable)
+    void YDlidarDriver::setHeartBeat(const bool& enable)
 	{
 		isHeartbeat = enable;
 
@@ -894,6 +902,9 @@ namespace ydlidar{
                                 m_pointTime = 1e9/9000;
                                 break;
                             }
+                            if(firmware_version < 521&& firmware_version != 0){
+                                setHeartBeat(false);
+                            }
 
                         }
                         trans_delay = _serial->getByteTime();
@@ -911,12 +922,18 @@ namespace ydlidar{
                             if(_sampling_rate ==1){
                                 m_pointTime = 1e9/6000;
                             }
+                            if(firmware_version < 521&& firmware_version != 0){
+                                setHeartBeat(false);
+                            }
 
                         }
                         trans_delay = _serial->getByteTime();
                         break;
                         case 9://g4c
                         trans_delay = _serial->getByteTime();
+                        if(firmware_version < 521&& firmware_version != 0){
+                            setHeartBeat(false);
+                        }
                         break;
                     }
                 }
@@ -938,7 +955,7 @@ namespace ydlidar{
 				return RESULT_FAIL;
 			}
 
-			if (response_header.size < (sizeof(node_info)-sizeof(uint64_t))) {
+            if (response_header.size < 5 ) {
 				return RESULT_FAIL;
 			}
 

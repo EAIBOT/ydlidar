@@ -44,17 +44,14 @@ const bool \hyperlink{classydlidar_1_1_y_dlidar_driver_a37cd2766dec3536848aa25c8
 const bool \hyperlink{classydlidar_1_1_y_dlidar_driver_a2553d28304faa4acab6bd63e7c6c2ee6}{isconnected} () const 
 \begin{DoxyCompactList}\small\item\em 连接雷达状态 ~\newline
 \end{DoxyCompactList}\item 
-void \hyperlink{classydlidar_1_1_y_dlidar_driver_a406ae191df8a2a2fa90de4175cfe9d4c}{set\+Intensities} (const bool isintensities)
+void \hyperlink{classydlidar_1_1_y_dlidar_driver_afc543dbbe1c5e37afc366e3c92203533}{set\+Intensities} (const bool \&isintensities)
 \begin{DoxyCompactList}\small\item\em 设置雷达是否带信号质量 ~\newline
 连接成功后，必须使用\+::disconnect函数关闭 \end{DoxyCompactList}\item 
 const bool \hyperlink{classydlidar_1_1_y_dlidar_driver_a36b01c5124032be12ecbeffeefd38742}{get\+Heart\+Beat} () const 
 \begin{DoxyCompactList}\small\item\em 获取当前雷达掉电保护功能 ~\newline
 \end{DoxyCompactList}\item 
-void \hyperlink{classydlidar_1_1_y_dlidar_driver_ab2bf62735be18019864c12f0e462c4a2}{set\+Heart\+Beat} (const bool enable)
+void \hyperlink{classydlidar_1_1_y_dlidar_driver_af5d6603d3664d3efcb56d64d76d31956}{set\+Heart\+Beat} (const bool \&enable)
 \begin{DoxyCompactList}\small\item\em 设置雷达掉电保护使能 ~\newline
-\end{DoxyCompactList}\item 
-result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a6e7dc7cd2a73d24a763cebde840a5d30}{send\+Heart\+Beat} ()
-\begin{DoxyCompactList}\small\item\em 发送掉电保护命令 ~\newline
 \end{DoxyCompactList}\item 
 result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a9fe6f8b842a2aff2c3ae13f8423b03f4}{get\+Health} (\hyperlink{structdevice__health}{device\+\_\+health} \&health, uint32\+\_\+t timeout=\hyperlink{classydlidar_1_1_y_dlidar_driver_a13a4f2dc4067b43794b2c47c06d5d27aa07c79ce96f468ff4b40495ef84584442}{D\+E\+F\+A\+U\+L\+T\+\_\+\+T\+I\+M\+E\+O\+UT})
 \begin{DoxyCompactList}\small\item\em 获取雷达设备健康状态 ~\newline
@@ -222,6 +219,9 @@ result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_ad787e714bc05e5a70a42b
 \end{DoxyCompactList}\item 
 result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a998ba4b05927d19e8a0d4d29d3d47656}{send\+Data} (const uint8\+\_\+t $\ast$data, size\+\_\+t size)
 \begin{DoxyCompactList}\small\item\em 串口发送数据 ~\newline
+\end{DoxyCompactList}\item 
+result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a6e7dc7cd2a73d24a763cebde840a5d30}{send\+Heart\+Beat} ()
+\begin{DoxyCompactList}\small\item\em 发送掉电保护命令 ~\newline
 \end{DoxyCompactList}\item 
 void \hyperlink{classydlidar_1_1_y_dlidar_driver_ae66565bee3cdb8b74698b691f2ab1e63}{disable\+Data\+Grabbing} ()\hypertarget{classydlidar_1_1_y_dlidar_driver_ae66565bee3cdb8b74698b691f2ab1e63}{}\label{classydlidar_1_1_y_dlidar_driver_ae66565bee3cdb8b74698b691f2ab1e63}
 
@@ -908,7 +908,7 @@ A destructor. A more elaborate description of the destructor.
 \begin{DoxyParamCaption}
 {}
 \end{DoxyParamCaption}
-)}\hypertarget{classydlidar_1_1_y_dlidar_driver_a6e7dc7cd2a73d24a763cebde840a5d30}{}\label{classydlidar_1_1_y_dlidar_driver_a6e7dc7cd2a73d24a763cebde840a5d30}
+)\hspace{0.3cm}{\ttfamily [protected]}}\hypertarget{classydlidar_1_1_y_dlidar_driver_a6e7dc7cd2a73d24a763cebde840a5d30}{}\label{classydlidar_1_1_y_dlidar_driver_a6e7dc7cd2a73d24a763cebde840a5d30}
 
 
 发送掉电保护命令 ~\newline
@@ -929,11 +929,11 @@ A destructor. A more elaborate description of the destructor.
 \end{DoxyNote}
 \index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!set\+Heart\+Beat@{set\+Heart\+Beat}}
 \index{set\+Heart\+Beat@{set\+Heart\+Beat}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
-\subsubsection[{\texorpdfstring{set\+Heart\+Beat(const bool enable)}{setHeartBeat(const bool enable)}}]{\setlength{\rightskip}{0pt plus 5cm}void ydlidar\+::\+Y\+Dlidar\+Driver\+::set\+Heart\+Beat (
+\subsubsection[{\texorpdfstring{set\+Heart\+Beat(const bool \&enable)}{setHeartBeat(const bool &enable)}}]{\setlength{\rightskip}{0pt plus 5cm}void ydlidar\+::\+Y\+Dlidar\+Driver\+::set\+Heart\+Beat (
 \begin{DoxyParamCaption}
-\item[{const bool}]{enable}
+\item[{const bool \&}]{enable}
 \end{DoxyParamCaption}
-)}\hypertarget{classydlidar_1_1_y_dlidar_driver_ab2bf62735be18019864c12f0e462c4a2}{}\label{classydlidar_1_1_y_dlidar_driver_ab2bf62735be18019864c12f0e462c4a2}
+)}\hypertarget{classydlidar_1_1_y_dlidar_driver_af5d6603d3664d3efcb56d64d76d31956}{}\label{classydlidar_1_1_y_dlidar_driver_af5d6603d3664d3efcb56d64d76d31956}
 
 
 设置雷达掉电保护使能 ~\newline
@@ -945,15 +945,15 @@ A destructor. A more elaborate description of the destructor.
 \hline
 \end{DoxyParams}
 \begin{DoxyNote}{Note}
-只有(\+G4, G4\+C, F4\+P\+R\+O)雷达支持掉电保护功能, 别的型号雷达暂不支持 
+只有(\+G4, G4\+C, F4\+P\+R\+O)雷达支持掉电保护功能, 别的型号雷达暂不支持 并且版本号大于等于2.0.\+9 才支持此功能, 小于2.0.\+9版本禁止开启掉电保护 
 \end{DoxyNote}
 \index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!set\+Intensities@{set\+Intensities}}
 \index{set\+Intensities@{set\+Intensities}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
-\subsubsection[{\texorpdfstring{set\+Intensities(const bool isintensities)}{setIntensities(const bool isintensities)}}]{\setlength{\rightskip}{0pt plus 5cm}void ydlidar\+::\+Y\+Dlidar\+Driver\+::set\+Intensities (
+\subsubsection[{\texorpdfstring{set\+Intensities(const bool \&isintensities)}{setIntensities(const bool &isintensities)}}]{\setlength{\rightskip}{0pt plus 5cm}void ydlidar\+::\+Y\+Dlidar\+Driver\+::set\+Intensities (
 \begin{DoxyParamCaption}
-\item[{const bool}]{isintensities}
+\item[{const bool \&}]{isintensities}
 \end{DoxyParamCaption}
-)}\hypertarget{classydlidar_1_1_y_dlidar_driver_a406ae191df8a2a2fa90de4175cfe9d4c}{}\label{classydlidar_1_1_y_dlidar_driver_a406ae191df8a2a2fa90de4175cfe9d4c}
+)}\hypertarget{classydlidar_1_1_y_dlidar_driver_afc543dbbe1c5e37afc366e3c92203533}{}\label{classydlidar_1_1_y_dlidar_driver_afc543dbbe1c5e37afc366e3c92203533}
 
 
 设置雷达是否带信号质量 ~\newline
@@ -965,7 +965,7 @@ A destructor. A more elaborate description of the destructor.
 \hline
 \end{DoxyParams}
 \begin{DoxyNote}{Note}
-只有\+S4\+B雷达支持带信号质量, 别的型号雷达暂不支持 
+只有\+S4B(波特率是153600)雷达支持带信号质量, 别的型号雷达暂不支持 
 \end{DoxyNote}
 \index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!set\+Low\+Exposure@{set\+Low\+Exposure}}
 \index{set\+Low\+Exposure@{set\+Low\+Exposure}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
@@ -1395,7 +1395,7 @@ A destructor. A more elaborate description of the destructor.
 \hline
 \end{DoxyRetVals}
 \begin{DoxyNote}{Note}
-停止扫描后再执行当前操作, 当前操作是开关量, (G4, G4C, F4\+P\+RO)支持 
+停止扫描后再执行当前操作, 当前操作是开关量, (G4, G4C, F4\+P\+RO)版本号大于等于2.0.\+9才支持 
 \end{DoxyNote}
 \index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!simple\+Scan\+Data@{simple\+Scan\+Data}}
 \index{simple\+Scan\+Data@{simple\+Scan\+Data}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
