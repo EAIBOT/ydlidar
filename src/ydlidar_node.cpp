@@ -341,7 +341,7 @@ int main(int argc, char * argv[]) {
     nh_private.param<bool>("resolution_fixed", resolution_fixed, "true");
     nh_private.param<bool>("heartbeat", heartbeat, "false");
     nh_private.param<bool>("low_exposure", low_exposure, "false");
-    nh_private.param<bool>("auto_reconnect", auto_reconnect, "false");
+    nh_private.param<bool>("auto_reconnect", auto_reconnect, "true");
     nh_private.param<double>("angle_max", angle_max , 180);
     nh_private.param<double>("angle_min", angle_min , -180);
     nh_private.param<int>("samp_rate", samp_rate, 4); 
