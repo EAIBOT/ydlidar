@@ -20,7 +20,7 @@
 
 using namespace ydlidar;
 
-#define ROSVerision "1.3.1"
+#define ROSVerision "1.3.2"
 
 static bool flag = true;
 static int nodes_count = 720;
@@ -322,6 +322,7 @@ int main(int argc, char * argv[]) {
     std::string model;
     std::string frame_id;
     bool angle_fixed, intensities_,low_exposure,reversion, resolution_fixed,heartbeat;
+    bool auto_reconnect;
     double angle_max,angle_min;
     result_t op_result;
     int samp_rate;
@@ -340,6 +341,7 @@ int main(int argc, char * argv[]) {
     nh_private.param<bool>("resolution_fixed", resolution_fixed, "true");
     nh_private.param<bool>("heartbeat", heartbeat, "false");
     nh_private.param<bool>("low_exposure", low_exposure, "false");
+    nh_private.param<bool>("auto_reconnect", auto_reconnect, "false");
     nh_private.param<double>("angle_max", angle_max , 180);
     nh_private.param<double>("angle_min", angle_min , -180);
     nh_private.param<int>("samp_rate", samp_rate, 4); 
@@ -508,7 +510,7 @@ again:
             return 0;
         }
     }
-	
+	YDlidarDriver::singleton()->setAutoReconnect(auto_reconnect);
     printf("[YDLIDAR INFO] Now YDLIDAR is scanning ......\n");
     flag = false;
     ros::Time start_scan_time;

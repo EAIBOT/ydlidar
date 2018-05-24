@@ -7,6 +7,7 @@
     <param name="low_exposure"  type="bool"   value="false"/>
     <param name="heartbeat"    type="bool"   value="false"/>
     <param name="resolution_fixed"    type="bool"   value="true"/>
+    <param name="auto_reconnect"    type="bool"   value="false"/>
     <param name="angle_min"    type="double" value="-180" />
     <param name="angle_max"    type="double" value="180" />
     <param name="range_min"    type="double" value="0.08" />
