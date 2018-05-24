@@ -22,7 +22,7 @@ namespace ydlidar{
         //串口配置参数
 		m_intensities = false;
 		isHeartbeat = false;
-        isAutoReconnect = true;
+        isAutoReconnect = false;
         isAutoconnting = false;
 
 		_baudrate = 115200;
@@ -746,6 +746,7 @@ namespace ydlidar{
 		}
 
 		if (i == (int)count){
+			delete[] tmpbuffer;
 			return RESULT_FAIL;
 		}
 
