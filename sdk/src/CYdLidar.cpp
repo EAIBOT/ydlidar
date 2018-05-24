@@ -21,6 +21,7 @@ CYdLidar::CYdLidar()
     m_Exposure = false;
     m_HeartBeat = false;
     m_Reversion = false;
+    m_AutoReconnect = false;
     m_MaxAngle = 180.f;
     m_MinAngle = -180.f;
     m_MaxRange = 16.0;
@@ -621,6 +622,7 @@ bool CYdLidar::checkStatus()
         isScanning = false;
         return false;
     }
+    YDlidarDriver::singleton()->setAutoReconnect(m_AutoReconnect);
     printf("[YDLIDAR INFO] Now YDLIDAR is scanning ......\n");
     fflush(stdout);
     fflush(stderr);

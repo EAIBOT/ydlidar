@@ -316,6 +316,14 @@ namespace ydlidar{
     	*/
         void setHeartBeat(const bool& enable);
 
+        /**
+         * @brief 设置雷达异常自动重新连接 \n
+         * @param[in] enable    是否开启自动重连:
+         *     true	开启
+         *	  false 关闭
+         */
+        void setAutoReconnect(const bool& enable);
+
 		/**
 		* @brief 获取雷达设备健康状态 \n
     	* @return 返回执行结果
@@ -657,6 +665,19 @@ namespace ydlidar{
     	*/
 		result_t createThread();
 
+
+        /**
+        * @brief 重新连接开启扫描 \n
+        * @param[in] force    扫描模式
+        * @param[in] timeout  超时时间
+        * @return 返回执行结果
+        * @retval RESULT_OK       开启成功
+        * @retval RESULT_FAILE    开启失败
+        * @note sdk 自动重新连接调用
+        */
+
+        result_t startAutoScan(bool force = false, uint32_t timeout = DEFAULT_TIMEOUT) ;
+
 		/**
 		* @brief 解包激光数据 \n
     	* @param[in] node 解包后激光点信息
@@ -767,6 +788,8 @@ namespace ydlidar{
 		std::atomic<bool>     isConnected;  ///< 串口连接状体
         std::atomic<bool>     isScanning;   ///< 扫图状态
 		std::atomic<bool>     isHeartbeat;  ///< 掉电保护状态
+        std::atomic<bool>     isAutoReconnect;  ///< 异常自动从新连接
+        std::atomic<bool>      isAutoconnting; ///< 是否正在自动连接中
 
 		enum {
 			DEFAULT_TIMEOUT = 2000,    /**< 默认超时时间. */ 
@@ -788,6 +811,7 @@ namespace ydlidar{
 		size_t         scan_node_count;      ///< 激光点数
 		Event          _dataEvent;			 ///< 数据同步事件
 		Locker         _lock;				///< 线程锁
+        Locker _serial_lock;                ///< 串口锁
 		Thread 	       _thread;				///< 线程id
 
 	private:
@@ -820,6 +844,8 @@ namespace ydlidar{
         uint16_t LastSampleAngleCal;
         bool CheckSunResult;
         uint16_t Valu8Tou16;
+
+        std::string serial_port;///< 雷达端口
 
 	};
 }

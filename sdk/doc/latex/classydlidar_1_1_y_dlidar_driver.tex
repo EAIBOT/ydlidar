@@ -2,7 +2,8 @@
 \label{classydlidar_1_1_y_dlidar_driver}\index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
 
 
-Collaboration diagram for ydlidar\+:\+:Y\+Dlidar\+Driver\+:\nopagebreak
+Collaboration diagram for ydlidar\+:\+:Y\+Dlidar\+Driver\+:
+\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -52,6 +53,9 @@ const bool \hyperlink{classydlidar_1_1_y_dlidar_driver_a36b01c5124032be12ecbeffe
 \end{DoxyCompactList}\item 
 void \hyperlink{classydlidar_1_1_y_dlidar_driver_af5d6603d3664d3efcb56d64d76d31956}{set\+Heart\+Beat} (const bool \&enable)
 \begin{DoxyCompactList}\small\item\em 设置雷达掉电保护使能 ~\newline
+\end{DoxyCompactList}\item 
+void \hyperlink{classydlidar_1_1_y_dlidar_driver_a6de3ec3e2b2837f0459f1ce35257323a}{set\+Auto\+Reconnect} (const bool \&enable)
+\begin{DoxyCompactList}\small\item\em 设置雷达异常自动重新连接 ~\newline
 \end{DoxyCompactList}\item 
 result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a9fe6f8b842a2aff2c3ae13f8423b03f4}{get\+Health} (\hyperlink{structdevice__health}{device\+\_\+health} \&health, uint32\+\_\+t timeout=\hyperlink{classydlidar_1_1_y_dlidar_driver_a13a4f2dc4067b43794b2c47c06d5d27aa07c79ce96f468ff4b40495ef84584442}{D\+E\+F\+A\+U\+L\+T\+\_\+\+T\+I\+M\+E\+O\+UT})
 \begin{DoxyCompactList}\small\item\em 获取雷达设备健康状态 ~\newline
@@ -170,6 +174,12 @@ std\+::atomic$<$ bool $>$ \hyperlink{classydlidar_1_1_y_dlidar_driver_a245115a8c
 std\+::atomic$<$ bool $>$ \hyperlink{classydlidar_1_1_y_dlidar_driver_a8a57494e849e7735fe8bf46d00b63077}{is\+Heartbeat}\hypertarget{classydlidar_1_1_y_dlidar_driver_a8a57494e849e7735fe8bf46d00b63077}{}\label{classydlidar_1_1_y_dlidar_driver_a8a57494e849e7735fe8bf46d00b63077}
 
 \begin{DoxyCompactList}\small\item\em 掉电保护状态 \end{DoxyCompactList}\item 
+std\+::atomic$<$ bool $>$ \hyperlink{classydlidar_1_1_y_dlidar_driver_aa9fe773e62367a784c888d97c1886661}{is\+Auto\+Reconnect}\hypertarget{classydlidar_1_1_y_dlidar_driver_aa9fe773e62367a784c888d97c1886661}{}\label{classydlidar_1_1_y_dlidar_driver_aa9fe773e62367a784c888d97c1886661}
+
+\begin{DoxyCompactList}\small\item\em 异常自动从新连接 \end{DoxyCompactList}\item 
+std\+::atomic$<$ bool $>$ \hyperlink{classydlidar_1_1_y_dlidar_driver_a4fcf172c55eabd5c6ca2d8c2bf14e5c6}{is\+Autoconnting}\hypertarget{classydlidar_1_1_y_dlidar_driver_a4fcf172c55eabd5c6ca2d8c2bf14e5c6}{}\label{classydlidar_1_1_y_dlidar_driver_a4fcf172c55eabd5c6ca2d8c2bf14e5c6}
+
+\begin{DoxyCompactList}\small\item\em 是否正在自动连接中 \end{DoxyCompactList}\item 
 \hyperlink{structnode__info}{node\+\_\+info} \hyperlink{classydlidar_1_1_y_dlidar_driver_aeaefa47c69cbb0439b1259bdc6ccb29e}{scan\+\_\+node\+\_\+buf} \mbox{[}2048\mbox{]}\hypertarget{classydlidar_1_1_y_dlidar_driver_aeaefa47c69cbb0439b1259bdc6ccb29e}{}\label{classydlidar_1_1_y_dlidar_driver_aeaefa47c69cbb0439b1259bdc6ccb29e}
 
 \begin{DoxyCompactList}\small\item\em 激光点信息 \end{DoxyCompactList}\item 
@@ -182,6 +192,9 @@ size\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a106fc563bb42f19e84e8d9d
 \hyperlink{class_locker}{Locker} \hyperlink{classydlidar_1_1_y_dlidar_driver_a1bb836661c8c39c2b71c9a0de8755c5c}{\+\_\+lock}\hypertarget{classydlidar_1_1_y_dlidar_driver_a1bb836661c8c39c2b71c9a0de8755c5c}{}\label{classydlidar_1_1_y_dlidar_driver_a1bb836661c8c39c2b71c9a0de8755c5c}
 
 \begin{DoxyCompactList}\small\item\em 线程锁 \end{DoxyCompactList}\item 
+\hyperlink{class_locker}{Locker} \hyperlink{classydlidar_1_1_y_dlidar_driver_ac1ace85f37283559d4f2bc2797eea900}{\+\_\+serial\+\_\+lock}\hypertarget{classydlidar_1_1_y_dlidar_driver_ac1ace85f37283559d4f2bc2797eea900}{}\label{classydlidar_1_1_y_dlidar_driver_ac1ace85f37283559d4f2bc2797eea900}
+
+\begin{DoxyCompactList}\small\item\em 串口锁 \end{DoxyCompactList}\item 
 \hyperlink{class_thread}{Thread} \hyperlink{classydlidar_1_1_y_dlidar_driver_a9fbd1b3471c1aa4959d74524b9a92410}{\+\_\+thread}\hypertarget{classydlidar_1_1_y_dlidar_driver_a9fbd1b3471c1aa4959d74524b9a92410}{}\label{classydlidar_1_1_y_dlidar_driver_a9fbd1b3471c1aa4959d74524b9a92410}
 
 \begin{DoxyCompactList}\small\item\em 线程id \end{DoxyCompactList}\end{DoxyCompactItemize}
@@ -194,6 +207,9 @@ virtual \hyperlink{classydlidar_1_1_y_dlidar_driver_a87a50f9f1093a93b4d985f3e8bf
 \item 
 result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a2d2b317fa6381009222e03670812e917}{create\+Thread} ()
 \begin{DoxyCompactList}\small\item\em 创建解析雷达数据线程 ~\newline
+\end{DoxyCompactList}\item 
+result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_a75b64716b6c354f814d0b423404e4104}{start\+Auto\+Scan} (bool force=false, uint32\+\_\+t timeout=\hyperlink{classydlidar_1_1_y_dlidar_driver_a13a4f2dc4067b43794b2c47c06d5d27aa07c79ce96f468ff4b40495ef84584442}{D\+E\+F\+A\+U\+L\+T\+\_\+\+T\+I\+M\+E\+O\+UT})
+\begin{DoxyCompactList}\small\item\em 重新连接开启扫描 ~\newline
 \end{DoxyCompactList}\item 
 result\+\_\+t \hyperlink{classydlidar_1_1_y_dlidar_driver_aaf78903693f58c7f739dfa493573b3b1}{wait\+Package} (\hyperlink{structnode__info}{node\+\_\+info} $\ast$node, uint32\+\_\+t timeout=\hyperlink{classydlidar_1_1_y_dlidar_driver_a13a4f2dc4067b43794b2c47c06d5d27aa07c79ce96f468ff4b40495ef84584442}{D\+E\+F\+A\+U\+L\+T\+\_\+\+T\+I\+M\+E\+O\+UT})
 \begin{DoxyCompactList}\small\item\em 解包激光数据 ~\newline
@@ -927,6 +943,23 @@ A destructor. A more elaborate description of the destructor.
 \begin{DoxyNote}{Note}
 只有(\+G4, G4\+C, F4\+P\+R\+O)雷达支持掉电保护功能, 别的型号雷达暂不支持 
 \end{DoxyNote}
+\index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!set\+Auto\+Reconnect@{set\+Auto\+Reconnect}}
+\index{set\+Auto\+Reconnect@{set\+Auto\+Reconnect}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
+\subsubsection[{\texorpdfstring{set\+Auto\+Reconnect(const bool \&enable)}{setAutoReconnect(const bool &enable)}}]{\setlength{\rightskip}{0pt plus 5cm}void ydlidar\+::\+Y\+Dlidar\+Driver\+::set\+Auto\+Reconnect (
+\begin{DoxyParamCaption}
+\item[{const bool \&}]{enable}
+\end{DoxyParamCaption}
+)}\hypertarget{classydlidar_1_1_y_dlidar_driver_a6de3ec3e2b2837f0459f1ce35257323a}{}\label{classydlidar_1_1_y_dlidar_driver_a6de3ec3e2b2837f0459f1ce35257323a}
+
+
+设置雷达异常自动重新连接 ~\newline
+
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em enable} & 是否开启自动重连\+: true 开启 false 关闭 \\
+\hline
+\end{DoxyParams}
 \index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!set\+Heart\+Beat@{set\+Heart\+Beat}}
 \index{set\+Heart\+Beat@{set\+Heart\+Beat}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
 \subsubsection[{\texorpdfstring{set\+Heart\+Beat(const bool \&enable)}{setHeartBeat(const bool &enable)}}]{\setlength{\rightskip}{0pt plus 5cm}void ydlidar\+::\+Y\+Dlidar\+Driver\+::set\+Heart\+Beat (
@@ -1423,6 +1456,39 @@ A destructor. A more elaborate description of the destructor.
 \begin{DoxyNote}{Note}
 解析之前，必须使用\+::ascend\+Scan\+Data函数获取激光数据成功 
 \end{DoxyNote}
+\index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!start\+Auto\+Scan@{start\+Auto\+Scan}}
+\index{start\+Auto\+Scan@{start\+Auto\+Scan}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
+\subsubsection[{\texorpdfstring{start\+Auto\+Scan(bool force=false, uint32\+\_\+t timeout=\+D\+E\+F\+A\+U\+L\+T\+\_\+\+T\+I\+M\+E\+O\+U\+T)}{startAutoScan(bool force=false, uint32_t timeout=DEFAULT_TIMEOUT)}}]{\setlength{\rightskip}{0pt plus 5cm}result\+\_\+t ydlidar\+::\+Y\+Dlidar\+Driver\+::start\+Auto\+Scan (
+\begin{DoxyParamCaption}
+\item[{bool}]{force = {\ttfamily false}, }
+\item[{uint32\+\_\+t}]{timeout = {\ttfamily {\bf D\+E\+F\+A\+U\+L\+T\+\_\+\+T\+I\+M\+E\+O\+UT}}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [protected]}}\hypertarget{classydlidar_1_1_y_dlidar_driver_a75b64716b6c354f814d0b423404e4104}{}\label{classydlidar_1_1_y_dlidar_driver_a75b64716b6c354f814d0b423404e4104}
+
+
+重新连接开启扫描 ~\newline
+
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em force} & 扫描模式 \\
+\hline
+\mbox{\tt in}  & {\em timeout} & 超时时间 \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+返回执行结果 
+\end{DoxyReturn}
+
+\begin{DoxyRetVals}{Return values}
+{\em R\+E\+S\+U\+L\+T\+\_\+\+OK} & 开启成功 \\
+\hline
+{\em R\+E\+S\+U\+L\+T\+\_\+\+F\+A\+I\+LE} & 开启失败 \\
+\hline
+\end{DoxyRetVals}
+\begin{DoxyNote}{Note}
+sdk 自动重新连接调用 
+\end{DoxyNote}
 \index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!start\+Motor@{start\+Motor}}
 \index{start\+Motor@{start\+Motor}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
 \subsubsection[{\texorpdfstring{start\+Motor()}{startMotor()}}]{\setlength{\rightskip}{0pt plus 5cm}result\+\_\+t ydlidar\+::\+Y\+Dlidar\+Driver\+::start\+Motor (
@@ -1580,7 +1646,7 @@ A destructor. A more elaborate description of the destructor.
 \mbox{\tt in}  & {\em timeout} & 超时时间 \\
 \hline
 \end{DoxyParams}
-\index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!wait\+Response\+Header@{wait\+Response\+Header}}
+$<$ 负数 \index{ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}!wait\+Response\+Header@{wait\+Response\+Header}}
 \index{wait\+Response\+Header@{wait\+Response\+Header}!ydlidar\+::\+Y\+Dlidar\+Driver@{ydlidar\+::\+Y\+Dlidar\+Driver}}
 \subsubsection[{\texorpdfstring{wait\+Response\+Header(lidar\+\_\+ans\+\_\+header $\ast$header, uint32\+\_\+t timeout=\+D\+E\+F\+A\+U\+L\+T\+\_\+\+T\+I\+M\+E\+O\+U\+T)}{waitResponseHeader(lidar_ans_header *header, uint32_t timeout=DEFAULT_TIMEOUT)}}]{\setlength{\rightskip}{0pt plus 5cm}result\+\_\+t ydlidar\+::\+Y\+Dlidar\+Driver\+::wait\+Response\+Header (
 \begin{DoxyParamCaption}

@@ -43,6 +43,7 @@ int main(int argc, char * argv[])
     laser.setHeartBeat(false);
     laser.setReversion(false);
     laser.setFixedResolution(false);
+    laser.setAutoReconnect(true);
 
     laser.initialize();
 

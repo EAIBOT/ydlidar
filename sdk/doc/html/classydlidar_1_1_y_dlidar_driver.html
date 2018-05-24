@@ -22,10 +22,10 @@
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr style="height: 56px;">
-  <td id="projectlogo"><img alt="Logo" src="app(2).png"/></td>
+  <td id="projectlogo"><img alt="Logo" src="ydliar.png"/></td>
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">YDLIDAR SDK
-   &#160;<span id="projectnumber">V1.3.3</span>
+   &#160;<span id="projectnumber">V1.3.4</span>
    </div>
   </td>
  </tr>
@@ -106,9 +106,9 @@ Collaboration diagram for ydlidar::YDlidarDriver:</div>
 <div class="center"><img src="classydlidar_1_1_y_dlidar_driver__coll__graph.png" border="0" usemap="#ydlidar_1_1_y_dlidar_driver_coll__map" alt="Collaboration graph"/></div>
 <map name="ydlidar_1_1_y_dlidar_driver_coll__map" id="ydlidar_1_1_y_dlidar_driver_coll__map">
 <area shape="rect" id="node2" href="structnode__info.html" title="node_info" alt="" coords="5,5,84,32"/>
-<area shape="rect" id="node3" href="class_locker.html" title="Locker" alt="" coords="134,5,195,32"/>
-<area shape="rect" id="node4" href="class_event.html" title="Event" alt="" coords="219,5,275,32"/>
-<area shape="rect" id="node5" href="class_thread.html" title="Thread" alt="" coords="313,5,376,32"/>
+<area shape="rect" id="node3" href="class_locker.html" title="Locker" alt="" coords="138,5,199,32"/>
+<area shape="rect" id="node4" href="class_event.html" title="Event" alt="" coords="241,5,297,32"/>
+<area shape="rect" id="node5" href="class_thread.html" title="Thread" alt="" coords="339,5,401,32"/>
 </map>
 <center><span class="legend">[<a href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -163,6 +163,10 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memdesc:af5d6603d3664d3efcb56d64d76d31956"><td class="mdescLeft">&#160;</td><td class="mdescRight">设置雷达掉电保护使能 <br />
  <a href="#af5d6603d3664d3efcb56d64d76d31956">More...</a><br /></td></tr>
 <tr class="separator:af5d6603d3664d3efcb56d64d76d31956"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6de3ec3e2b2837f0459f1ce35257323a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classydlidar_1_1_y_dlidar_driver.html#a6de3ec3e2b2837f0459f1ce35257323a">setAutoReconnect</a> (const bool &amp;enable)</td></tr>
+<tr class="memdesc:a6de3ec3e2b2837f0459f1ce35257323a"><td class="mdescLeft">&#160;</td><td class="mdescRight">设置雷达异常自动重新连接 <br />
+ <a href="#a6de3ec3e2b2837f0459f1ce35257323a">More...</a><br /></td></tr>
+<tr class="separator:a6de3ec3e2b2837f0459f1ce35257323a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9fe6f8b842a2aff2c3ae13f8423b03f4"><td class="memItemLeft" align="right" valign="top">result_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classydlidar_1_1_y_dlidar_driver.html#a9fe6f8b842a2aff2c3ae13f8423b03f4">getHealth</a> (<a class="el" href="structdevice__health.html">device_health</a> &amp;health, uint32_t timeout=<a class="el" href="classydlidar_1_1_y_dlidar_driver.html#a13a4f2dc4067b43794b2c47c06d5d27aa07c79ce96f468ff4b40495ef84584442">DEFAULT_TIMEOUT</a>)</td></tr>
 <tr class="memdesc:a9fe6f8b842a2aff2c3ae13f8423b03f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">获取雷达设备健康状态 <br />
  <a href="#a9fe6f8b842a2aff2c3ae13f8423b03f4">More...</a><br /></td></tr>
@@ -314,6 +318,14 @@ std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a 
 std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classydlidar_1_1_y_dlidar_driver.html#a8a57494e849e7735fe8bf46d00b63077">isHeartbeat</a></td></tr>
 <tr class="memdesc:a8a57494e849e7735fe8bf46d00b63077"><td class="mdescLeft">&#160;</td><td class="mdescRight">掉电保护状态 <br /></td></tr>
 <tr class="separator:a8a57494e849e7735fe8bf46d00b63077"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9fe773e62367a784c888d97c1886661"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa9fe773e62367a784c888d97c1886661"></a>
+std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classydlidar_1_1_y_dlidar_driver.html#aa9fe773e62367a784c888d97c1886661">isAutoReconnect</a></td></tr>
+<tr class="memdesc:aa9fe773e62367a784c888d97c1886661"><td class="mdescLeft">&#160;</td><td class="mdescRight">异常自动从新连接 <br /></td></tr>
+<tr class="separator:aa9fe773e62367a784c888d97c1886661"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4fcf172c55eabd5c6ca2d8c2bf14e5c6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4fcf172c55eabd5c6ca2d8c2bf14e5c6"></a>
+std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classydlidar_1_1_y_dlidar_driver.html#a4fcf172c55eabd5c6ca2d8c2bf14e5c6">isAutoconnting</a></td></tr>
+<tr class="memdesc:a4fcf172c55eabd5c6ca2d8c2bf14e5c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">是否正在自动连接中 <br /></td></tr>
+<tr class="separator:a4fcf172c55eabd5c6ca2d8c2bf14e5c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeaefa47c69cbb0439b1259bdc6ccb29e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeaefa47c69cbb0439b1259bdc6ccb29e"></a>
 <a class="el" href="structnode__info.html">node_info</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classydlidar_1_1_y_dlidar_driver.html#aeaefa47c69cbb0439b1259bdc6ccb29e">scan_node_buf</a> [2048]</td></tr>
 <tr class="memdesc:aeaefa47c69cbb0439b1259bdc6ccb29e"><td class="mdescLeft">&#160;</td><td class="mdescRight">激光点信息 <br /></td></tr>
@@ -330,6 +342,10 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
 <a class="el" href="class_locker.html">Locker</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classydlidar_1_1_y_dlidar_driver.html#a1bb836661c8c39c2b71c9a0de8755c5c">_lock</a></td></tr>
 <tr class="memdesc:a1bb836661c8c39c2b71c9a0de8755c5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">线程锁 <br /></td></tr>
 <tr class="separator:a1bb836661c8c39c2b71c9a0de8755c5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1ace85f37283559d4f2bc2797eea900"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac1ace85f37283559d4f2bc2797eea900"></a>
+<a class="el" href="class_locker.html">Locker</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classydlidar_1_1_y_dlidar_driver.html#ac1ace85f37283559d4f2bc2797eea900">_serial_lock</a></td></tr>
+<tr class="memdesc:ac1ace85f37283559d4f2bc2797eea900"><td class="mdescLeft">&#160;</td><td class="mdescRight">串口锁 <br /></td></tr>
+<tr class="separator:ac1ace85f37283559d4f2bc2797eea900"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9fbd1b3471c1aa4959d74524b9a92410"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9fbd1b3471c1aa4959d74524b9a92410"></a>
 <a class="el" href="class_thread.html">Thread</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classydlidar_1_1_y_dlidar_driver.html#a9fbd1b3471c1aa4959d74524b9a92410">_thread</a></td></tr>
 <tr class="memdesc:a9fbd1b3471c1aa4959d74524b9a92410"><td class="mdescLeft">&#160;</td><td class="mdescRight">线程id <br /></td></tr>
@@ -345,6 +361,10 @@ Protected Member Functions</h2></td></tr>
 <tr class="memdesc:a2d2b317fa6381009222e03670812e917"><td class="mdescLeft">&#160;</td><td class="mdescRight">创建解析雷达数据线程 <br />
  <a href="#a2d2b317fa6381009222e03670812e917">More...</a><br /></td></tr>
 <tr class="separator:a2d2b317fa6381009222e03670812e917"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75b64716b6c354f814d0b423404e4104"><td class="memItemLeft" align="right" valign="top">result_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classydlidar_1_1_y_dlidar_driver.html#a75b64716b6c354f814d0b423404e4104">startAutoScan</a> (bool force=false, uint32_t timeout=<a class="el" href="classydlidar_1_1_y_dlidar_driver.html#a13a4f2dc4067b43794b2c47c06d5d27aa07c79ce96f468ff4b40495ef84584442">DEFAULT_TIMEOUT</a>)</td></tr>
+<tr class="memdesc:a75b64716b6c354f814d0b423404e4104"><td class="mdescLeft">&#160;</td><td class="mdescRight">重新连接开启扫描 <br />
+ <a href="#a75b64716b6c354f814d0b423404e4104">More...</a><br /></td></tr>
+<tr class="separator:a75b64716b6c354f814d0b423404e4104"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf78903693f58c7f739dfa493573b3b1"><td class="memItemLeft" align="right" valign="top">result_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classydlidar_1_1_y_dlidar_driver.html#aaf78903693f58c7f739dfa493573b3b1">waitPackage</a> (<a class="el" href="structnode__info.html">node_info</a> *node, uint32_t timeout=<a class="el" href="classydlidar_1_1_y_dlidar_driver.html#a13a4f2dc4067b43794b2c47c06d5d27aa07c79ce96f468ff4b40495ef84584442">DEFAULT_TIMEOUT</a>)</td></tr>
 <tr class="memdesc:aaf78903693f58c7f739dfa493573b3b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">解包激光数据 <br />
  <a href="#aaf78903693f58c7f739dfa493573b3b1">More...</a><br /></td></tr>
@@ -1415,6 +1435,31 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 
 </div>
 </div>
+<a class="anchor" id="a6de3ec3e2b2837f0459f1ce35257323a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ydlidar::YDlidarDriver::setAutoReconnect </td>
+          <td>(</td>
+          <td class="paramtype">const bool &amp;&#160;</td>
+          <td class="paramname"><em>enable</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>设置雷达异常自动重新连接 <br />
+</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">enable</td><td>是否开启自动重连: true 开启 false 关闭 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="af5d6603d3664d3efcb56d64d76d31956"></a>
 <div class="memitem">
 <div class="memproto">
@@ -2097,6 +2142,59 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 
 </div>
 </div>
+<a class="anchor" id="a75b64716b6c354f814d0b423404e4104"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">result_t ydlidar::YDlidarDriver::startAutoScan </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>force</em> = <code>false</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>timeout</em> = <code><a class="el" href="classydlidar_1_1_y_dlidar_driver.html#a13a4f2dc4067b43794b2c47c06d5d27aa07c79ce96f468ff4b40495ef84584442">DEFAULT_TIMEOUT</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>重新连接开启扫描 <br />
+</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">force</td><td>扫描模式 </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">timeout</td><td>超时时间 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>返回执行结果 </dd></dl>
+<dl class="retval"><dt>Return values</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">RESULT_OK</td><td>开启成功 </td></tr>
+    <tr><td class="paramname">RESULT_FAILE</td><td>开启失败 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>sdk 自动重新连接调用 </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a2e686ef1ce60f3241352a798330f760b"></a>
 <div class="memitem">
 <div class="memproto">
@@ -2322,6 +2420,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
   </table>
   </dd>
 </dl>
+<p>&lt; 负数 </p>
 
 </div>
 </div>
