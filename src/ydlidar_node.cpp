@@ -322,7 +322,7 @@ int main(int argc, char * argv[]) {
     std::string model;
     std::string frame_id;
     bool angle_fixed, intensities_,low_exposure,reversion, resolution_fixed,heartbeat;
-    bool auto_reconnect;
+    bool auto_reconnect, debug;
     double angle_max,angle_min;
     result_t op_result;
     int samp_rate;
@@ -342,6 +342,7 @@ int main(int argc, char * argv[]) {
     nh_private.param<bool>("heartbeat", heartbeat, "false");
     nh_private.param<bool>("low_exposure", low_exposure, "false");
     nh_private.param<bool>("auto_reconnect", auto_reconnect, "true");
+    nh_private.param<bool>("debug", debug, "false");
     nh_private.param<double>("angle_max", angle_max , 180);
     nh_private.param<double>("angle_min", angle_min , -180);
     nh_private.param<int>("samp_rate", samp_rate, 4); 
@@ -367,6 +368,8 @@ int main(int argc, char * argv[]) {
         ROS_ERROR("YDLIDAR Create Driver fail, exit\n");
         return -2;
     }
+
+    YDlidarDriver::singleton()->setSaveParse(debug, "/temp/ydldiar_scan.txt");
 
     if(_frequency<5){
        _frequency = 7.0; 
@@ -473,22 +476,29 @@ again:
          scan_heart_beat beat;
          if(type != 8)
             reversion=true;
-        result_t ans = YDlidarDriver::singleton()->setScanHeartbeat(beat);
-        if(heartbeat){
-            if(beat.enable&& ans == RESULT_OK){
-                ans = YDlidarDriver::singleton()->setScanHeartbeat(beat);
-            }
-            if(!beat.enable&& ans == RESULT_OK ){
-                YDlidarDriver::singleton()->setHeartBeat(true);
-            }
-        }else{
-            if(!beat.enable&& ans == RESULT_OK){
-                ans = YDlidarDriver::singleton()->setScanHeartbeat(beat);
-            }
-            if(beat.enable && ans==RESULT_OK){
-                YDlidarDriver::singleton()->setHeartBeat(false);
-            }
+        if(heartbeat){//保证同步成功
+            sync:
+            ROS_INFO("sync heartbeat!!!");
+            result_t ans = YDlidarDriver::singleton()->setScanHeartbeat(beat);
+            if ( ans == RESULT_OK) {
+                if (beat.enable) {
+                    ans = YDlidarDriver::singleton()->setScanHeartbeat(beat);
+                    if (ans == RESULT_OK) {
+                        if (!beat.enable) {
+                            YDlidarDriver::singleton()->setHeartBeat(true);
+                        } else {
+                            goto sync;
+                        }
+                    } else {
+                         goto sync;
+                    }
+                } else {
+                    YDlidarDriver::singleton()->setHeartBeat(true);
+                }
 
+            }else {
+                goto sync;
+            }
         }
 
         if(_frequency < 7 && samp_rate>6){

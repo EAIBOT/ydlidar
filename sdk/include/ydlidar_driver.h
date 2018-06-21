@@ -324,6 +324,15 @@ namespace ydlidar{
          */
         void setAutoReconnect(const bool& enable);
 
+ 		/**
+         * @brief 设置保存解析命令到文件 \n
+         * @param[in] parse    是否保存解析:
+         *     true	保存
+         *	  false 不保存
+		 * @filename 保存文件名
+         */
+		bool setSaveParse(bool parse, const std::string& filename);
+
 		/**
 		* @brief 获取雷达设备健康状态 \n
     	* @return 返回执行结果
@@ -790,6 +799,7 @@ namespace ydlidar{
 		std::atomic<bool>     isHeartbeat;  ///< 掉电保护状态
         std::atomic<bool>     isAutoReconnect;  ///< 异常自动从新连接
         std::atomic<bool>      isAutoconnting; ///< 是否正在自动连接中
+		std::atomic<bool>     save_parsing;
 
 		enum {
 			DEFAULT_TIMEOUT = 2000,    /**< 默认超时时间. */ 
@@ -846,6 +856,8 @@ namespace ydlidar{
         uint16_t Valu8Tou16;
 
         std::string serial_port;///< 雷达端口
+
+		FILE *fd;
 
 	};
 }

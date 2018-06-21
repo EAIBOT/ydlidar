@@ -4,7 +4,7 @@
 *
 *  Copyright 2015 - 2018 EAI TEAM
 *  http://www.eaibot.com
-* 
+*
 */
 #include "common.h"
 #include "ydlidar_driver.h"
@@ -24,6 +24,7 @@ namespace ydlidar{
 		isHeartbeat = false;
         isAutoReconnect = false;
         isAutoconnting = false;
+		save_parsing = false;
 
 		_baudrate = 115200;
 		isSupportMotorCtrl=true;
@@ -44,6 +45,9 @@ namespace ydlidar{
         LastSampleAngleCal = 0;
         CheckSunResult = true;
         Valu8Tou16 = 0;
+
+		fd = NULL;
+
 	}
 
 	YDlidarDriver::~YDlidarDriver(){
@@ -63,6 +67,9 @@ namespace ydlidar{
 			delete _serial;
 			_serial = NULL;
 		}
+
+		if (NULL != fd)
+            fclose(fd);
 	}
 
 	result_t YDlidarDriver::connect(const char * port_path, uint32_t baudrate) {
@@ -94,6 +101,7 @@ namespace ydlidar{
 		}
 
 		if(_serial){
+			_serial->flush();
 			_serial->setDTR(1);
 		}
 
@@ -105,6 +113,7 @@ namespace ydlidar{
 		}
 
 		if(_serial){
+			_serial->flush();
 			_serial->setDTR(0);
 		}
 	}
@@ -166,6 +175,27 @@ namespace ydlidar{
         return isConnected;
     }
 
+	bool YDlidarDriver::setSaveParse(bool parse, const std::string& filename) {
+        bool ret = false;
+        save_parsing = parse;
+        if(save_parsing) {
+            if(fd == NULL){
+                 fd=fopen("ydlidar_scan.txt","w");
+                 ret = true;
+                 if (NULL == fd){
+                     fd =fopen(filename.c_str(), "w");
+                     ret = false;
+                 }
+            }
+        } else {
+            if(fd != NULL) {
+                fclose(fd);
+            }
+        }
+
+        return ret;
+    }
+
 
 
 	result_t YDlidarDriver::sendCommand(uint8_t cmd, const void * payload, size_t payloadsize) {
@@ -189,12 +219,14 @@ namespace ydlidar{
 			checksum ^= cmd;
 			checksum ^= (payloadsize & 0xFF);
 
+			uint8_t sizebyte = (uint8_t)(payloadsize);
+			sendData(&sizebyte, 1);
+
 			for (size_t pos = 0; pos < payloadsize; ++pos) {
 				checksum ^= ((uint8_t *)payload)[pos];
 			}
 
-			uint8_t sizebyte = (uint8_t)(payloadsize);
-			sendData(&sizebyte, 1);
+
 
 			sendData((const uint8_t *)payload, sizebyte);
 
@@ -210,6 +242,13 @@ namespace ydlidar{
 
 		if (data == NULL || size ==0) {
 			return RESULT_FAIL;
+		}
+		if (NULL != fd&& save_parsing){
+			fprintf(fd, "[send]: ");
+			for( int i =0; i < size; i++ )
+				fprintf(fd, "%02x ", *(data +1));
+
+			fprintf(fd, "\n");
 		}
 		size_t r;
         	while (size) {
@@ -323,6 +362,7 @@ namespace ydlidar{
                             ScopedLocker l(_serial_lock);
                             if(_serial){
                                 if(_serial->isOpen()){
+																	  sendCommand(LIDAR_CMD_STOP);
                                     _serial->close();
 
                                 }
@@ -359,7 +399,7 @@ namespace ydlidar{
 			for (size_t pos = 0; pos < count; ++pos) {
 				if (local_buf[pos].sync_quality & LIDAR_RESP_MEASUREMENT_SYNCBIT) {
 					if ((local_scan[0].sync_quality & LIDAR_RESP_MEASUREMENT_SYNCBIT)) {
-						_lock.lock();//timeout lock, wait resource copy 
+						_lock.lock();//timeout lock, wait resource copy
 						memcpy(scan_node_buf, local_scan, scan_count*sizeof(node_info));
 						scan_node_count = scan_count;
 						_dataEvent.set();
@@ -377,7 +417,10 @@ namespace ydlidar{
             if (isHeartbeat) {
                 end_ts = getms();
                 if(end_ts - start_ts > DEFAULT_HEART_BEAT){
-                    sendHeartBeat();
+                    result_t ans = sendHeartBeat();
+					if (NULL != fd&& save_parsing){
+                        fprintf(fd, "%02x%02x[send:%s]\n",0xa5, 0x60,ans==0?"ok":"failed");
+                    }
                     start_ts = end_ts;
                 }
             }
@@ -440,6 +483,9 @@ namespace ydlidar{
 
 						}else{
 							recvPos = 0;
+							if (NULL != fd&& save_parsing){
+                                fprintf(fd, "[%02x][error]\n", currentByte);
+                            }
 							continue;
 						}
 						break;
@@ -450,8 +496,14 @@ namespace ydlidar{
                             if(package_type == CT_RingStart){
                                 scan_frequence = (currentByte&0xFE)>>1;
                                 (*node).scan_frequence = scan_frequence;
+								if((*node).scan_frequence != 0 && NULL != fd && save_parsing) {
+                                	fprintf(fd, "[[%02x][SCAN FREQUENCE]]\n", currentByte);
+                            	}
                             }
 						} else {
+							if (NULL != fd&& save_parsing){
+                                fprintf(fd, "[%02x][error]\n", currentByte);
+                            }
 							recvPos = 0;
 							continue;
 						}
@@ -465,6 +517,9 @@ namespace ydlidar{
 							FirstSampleAngle = currentByte;
 						} else {
 							recvPos = 0;
+							if (NULL != fd&& save_parsing){
+                                fprintf(fd, "[%02x][error]\n", currentByte);
+                            }
 							continue;
 						}
 						break;
@@ -478,6 +533,9 @@ namespace ydlidar{
 							LastSampleAngle = currentByte;
 						} else {
 							recvPos = 0;
+							if (NULL != fd&& save_parsing){
+                                fprintf(fd, "[%02x][error]\n", currentByte);
+                            }
 							continue;
 						}
 						break;
@@ -511,12 +569,19 @@ namespace ydlidar{
 						}
 						break;
 					case 8:
-						CheckSun = currentByte;	
+						CheckSun = currentByte;
 						break;
 					case 9:
 						CheckSun += (currentByte*0x100);
 						break;
 					}
+					if (NULL != fd&& save_parsing){
+                        if(recvPos ==3|| recvPos==8 || recvPos ==9){
+                           fprintf(fd, "[%02x]", currentByte);
+                        }else{
+                           fprintf(fd, "%02x", currentByte);
+                        }
+                    }
 					packageBuffer[recvPos++] = currentByte;
 				}
 
@@ -552,19 +617,24 @@ namespace ydlidar{
 							}else if(recvPos%3 == 1){
 								Valu8Tou16 = recvBuffer[pos];
 							}else{
-								CheckSunCal ^= recvBuffer[pos]; 
+								CheckSunCal ^= recvBuffer[pos];
 							}
 						}else{
 							if(recvPos%2 == 1){
 								Valu8Tou16 += recvBuffer[pos]*0x100;
 								CheckSunCal ^= Valu8Tou16;
 							}else{
-								Valu8Tou16 = recvBuffer[pos];	
+								Valu8Tou16 = recvBuffer[pos];
 							}
-						}				
+						}
 
 						packageBuffer[package_recvPos+recvPos] = recvBuffer[pos];
 						recvPos++;
+
+						if (NULL != fd&& save_parsing){
+                            fprintf(fd, "%02x", recvBuffer[pos]);
+
+                        }
 					}
 
 					if(package_Sample_Num*PackageSampleBytes == recvPos){
@@ -583,10 +653,16 @@ namespace ydlidar{
 			CheckSunCal ^= SampleNumlAndCTCal;
 			CheckSunCal ^= LastSampleAngleCal;
 
-			if(CheckSunCal != CheckSun){	
+			if(CheckSunCal != CheckSun){
 				CheckSunResult = false;
+				if (NULL != fd&& save_parsing){
+                    fprintf(fd, "[%02x][%02x][error]\n", CheckSunCal&0xff, (CheckSunCal>>8)&0xff);
+                }
 			}else{
 				CheckSunResult = true;
+				if (NULL != fd&& save_parsing){
+                    fprintf(fd, "[%02x][%02x]\n", CheckSunCal&0xff, (CheckSunCal>>8)&0xff);
+                }
 			}
 
 		}
@@ -594,7 +670,7 @@ namespace ydlidar{
 		if(m_intensities){
 			package_CT = package.package_CT;
 		}else{
-			package_CT = packages.package_CT;    
+			package_CT = packages.package_CT;
 		}
 
 		if(package_CT == CT_Normal){
@@ -609,11 +685,11 @@ namespace ydlidar{
 				(*node).distance_q2 = package.packageSample[package_Sample_Index].PakageSampleDistance;
 			}else{
 				(*node).distance_q2 = packages.packageSampleDistance[package_Sample_Index];
-			}	  
+			}
 			if((*node).distance_q2/4 != 0){
 				AngleCorrectForDistance = (int32_t)(((atan(((21.8*(155.3 - ((*node).distance_q2/4)) )/155.3)/((*node).distance_q2/4)))*180.0/3.1415) * 64.0);
 			}else{
-				AngleCorrectForDistance = 0;		
+				AngleCorrectForDistance = 0;
 			}
 			if((FirstSampleAngle + IntervalSampleAngle*package_Sample_Index + AngleCorrectForDistance) < 0){
 				(*node).angle_q6_checkbit = (((uint16_t)(FirstSampleAngle + IntervalSampleAngle*package_Sample_Index + AngleCorrectForDistance + 360*64))<<1) + LIDAR_RESP_MEASUREMENT_CHECKBIT;
@@ -622,7 +698,7 @@ namespace ydlidar{
 					(*node).angle_q6_checkbit = (((uint16_t)(FirstSampleAngle + IntervalSampleAngle*package_Sample_Index + AngleCorrectForDistance - 360*64))<<1) + LIDAR_RESP_MEASUREMENT_CHECKBIT;
 				}else{
 					(*node).angle_q6_checkbit = (((uint16_t)(FirstSampleAngle + IntervalSampleAngle*package_Sample_Index + AngleCorrectForDistance))<<1) + LIDAR_RESP_MEASUREMENT_CHECKBIT;
-				} 
+				}
 			}
 		}else{
 			(*node).sync_quality = Node_Default_Quality + Node_NotSync;
@@ -889,7 +965,7 @@ namespace ydlidar{
 		}
 	}
 
-	/************************************************************************/	
+	/************************************************************************/
 	/* Get heartbeat function status                                        */
 	/************************************************************************/
     const bool YDlidarDriver::getHeartBeat() const
@@ -906,7 +982,7 @@ namespace ydlidar{
 		isHeartbeat = enable;
 
 	}
-        
+
 	/************************************************************************/
 	/* send heartbeat function package                                      */
 	/************************************************************************/
@@ -941,7 +1017,7 @@ namespace ydlidar{
 			return RESULT_OK;
 		}
 
-		stop();   
+		stop();
 		startMotor();
 
         {
