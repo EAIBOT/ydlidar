@@ -568,6 +568,7 @@ struct serial_struct {
 			UNLOCK(port_.c_str(), pid);
 			return false;
 		}
+		flush();
 
 		// Update byte_time_ based on the new settings.
 		uint32_t bit_time_ns = 1e9 / baudrate_;

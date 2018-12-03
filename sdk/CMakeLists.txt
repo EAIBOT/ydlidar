@@ -28,7 +28,6 @@ ENDIF()
 add_subdirectory(samples)
 
 add_library(ydlidar_driver SHARED ${SDK_SRC})
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 IF (WIN32)
 ELSE()
 target_link_libraries(ydlidar_driver rt pthread)
