@@ -137,7 +137,7 @@ namespace serial {
 		* \throw serial::IOException
 		* \throw std::invalid_argument
 		*/
-		Serial (const std::string &port = "",
+        explicit Serial (const std::string &port = "",
 			uint32_t baudrate = 9600,
 			Timeout timeout = Timeout(),
 			bytesize_t bytesize = eightbits,
@@ -547,7 +547,7 @@ namespace serial {
 
 	private:
 		// Disable copy constructors
-		Serial(const Serial&);
+        Serial(const Serial&);
 		Serial& operator=(const Serial&);
 
 		// Pimpl idiom, d_pointer
@@ -565,30 +565,34 @@ namespace serial {
 	};
 
 
-	/*!
-	* Structure that describes a serial device.
-	*/
-	struct PortInfo {
+    /*!
+    * Structure that describes a serial device.
+    */
+    struct PortInfo {
 
-		/*! Address of the serial port (this can be passed to the constructor of Serial). */
-		std::string port;
+        /*! Address of the serial port (this can be passed to the constructor of Serial). */
+        std::string port;
 
-		/*! Human readable description of serial device if available. */
-		std::string description;
+        /*! Human readable description of serial device if available. */
+        std::string description;
 
-		/*! Hardware ID (e.g. VID:PID of USB serial devices) or "n/a" if not available. */
-		std::string hardware_id;
+        /*! Hardware ID (e.g. VID:PID of USB serial devices) or "n/a" if not available. */
+        std::string hardware_id;
 
-	};
+        /*! Hardware Device ID or "" if not available. */
+        std::string device_id;
 
-	/* Lists the serial ports available on the system
-	*
-	* Returns a vector of available serial ports, each represented
-	* by a serial::PortInfo data structure:
-	*
-	* \return vector of serial::PortInfo.
-	*/
-	//std::vector<PortInfo> list_ports();
+    };
+
+    /* Lists the serial ports available on the system
+    *
+    * Returns a vector of available serial ports, each represented
+    * by a serial::PortInfo data structure:
+    *
+    * \return vector of serial::PortInfo.
+    */
+    std::vector<PortInfo>
+        list_ports();
 
 } // namespace serial
 

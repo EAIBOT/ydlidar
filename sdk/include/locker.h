@@ -174,7 +174,7 @@ public:
 		EVENT_FAILED = 0,
 	};
 
-	Event(bool isAutoReset = true, bool isSignal = false)
+    explicit Event(bool isAutoReset = true, bool isSignal = false)
 #ifdef _WIN32
 		: _event(NULL)
 #else
@@ -301,7 +301,7 @@ protected:
 class ScopedLocker
 {
 public :
-	ScopedLocker(Locker &l): _binded(l) {
+    explicit ScopedLocker(Locker &l): _binded(l) {
 		_binded.lock();
 	}
 

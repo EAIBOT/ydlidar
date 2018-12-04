@@ -5,7 +5,17 @@
 
 #include "serial.h"
 #include "time.h"
+#include <tchar.h>
+
+#ifndef UNICODE
+#define UNICODE
+#define UNICODE_WAS_UNDEFINED
+#endif
 #include "windows.h"
+
+#ifndef UNICODE_WAS_UNDEFINED
+#undef UNICODE
+#endif
 
 namespace serial {
 
@@ -14,7 +24,7 @@ namespace serial {
 	using std::invalid_argument;
 
 
-	class serial::Serial::SerialImpl {
+	class Serial::SerialImpl {
 	public:
 		explicit SerialImpl (const string &port,
 			unsigned long baudrate,
@@ -116,7 +126,7 @@ namespace serial {
 
     public:
         enum {
-            DEFAULT_RX_BUFFER_SIZE = 4096*4,
+            DEFAULT_RX_BUFFER_SIZE = 2048,
             DEFAULT_TX_BUFFER_SIZE = 128,
         };
 

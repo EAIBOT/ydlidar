@@ -2,14 +2,14 @@
 #pragma once
 
 #ifdef WIN32
-#ifdef ydlidar_EXPORTS
-#define YDLIDAR_API __declspec(dllexport)
+#ifdef ydlidar_IMPORTS
+#define YDLIDAR_API __declspec(dllimport)
 #else
-#ifdef ydlidarStatic_EXPORTS
+#ifdef ydlidarStatic_IMPORTS
 #define YDLIDAR_API 
 #else
 
-#define YDLIDAR_API __declspec(dllimport)
+#define YDLIDAR_API __declspec(dllexport)
 #endif // YDLIDAR_STATIC_EXPORTS
 #endif
 

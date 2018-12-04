@@ -14,5 +14,6 @@
 #include "serial.h"
 #include "thread.h"
 #include "timer.h"
+#include "Console.h"
 
-#define SDKVerision "1.3.1"
+#define SDKVerision "1.3.9"

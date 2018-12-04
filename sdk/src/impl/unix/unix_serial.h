@@ -16,7 +16,7 @@ namespace serial {
 
 	class MillisecondTimer {
 	public:
-		MillisecondTimer(const uint32_t millis);         
+        explicit MillisecondTimer(const uint32_t millis);
 		int64_t remaining();
 
 	private:
@@ -24,9 +24,9 @@ namespace serial {
 		timespec expiry;
 	};
 
-	class serial::Serial::SerialImpl {
+    class Serial::SerialImpl {
 	public:
-		SerialImpl (const string &port,
+        explicit SerialImpl (const string &port,
 			unsigned long baudrate,
 			bytesize_t bytesize,
 			parity_t parity,
@@ -128,6 +128,7 @@ namespace serial {
 	private:
 		string port_;               // Path to the file descriptor
 		int fd_;                    // The current file descriptor
+		pid_t pid;
 
 		bool is_open_;
 		bool xonxoff_;

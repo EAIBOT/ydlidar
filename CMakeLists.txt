@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(ydlidar)
-
-add_definitions(-std=c++11) # Use C++11
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+#add_definitions(-std=c++11) # Use C++11
 
 find_package(catkin REQUIRED COMPONENTS
   rosconsole
@@ -16,6 +16,7 @@ set(SDK_PATH "./sdk/")
 FILE(GLOB SDK_SRC 
   "${SDK_PATH}/src/impl/unix/*.cpp"
   "${SDK_PATH}/src/*.cpp"
+  "${SDK_PATH}/src/*.c"
 )
 
 catkin_package()

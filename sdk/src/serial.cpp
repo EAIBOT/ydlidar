@@ -27,7 +27,7 @@ namespace serial {
 
 	class Serial::ScopedReadLock {
 	public:
-		ScopedReadLock(SerialImpl *pimpl) : pimpl_(pimpl) {
+        explicit ScopedReadLock(Serial::SerialImpl *pimpl) : pimpl_(pimpl) {
 			this->pimpl_->readLock();
 		}
 		~ScopedReadLock() {
@@ -38,12 +38,12 @@ namespace serial {
 		ScopedReadLock(const ScopedReadLock&);
 		const ScopedReadLock& operator=(ScopedReadLock);
 
-		SerialImpl *pimpl_;
+        Serial::SerialImpl *pimpl_;
 	};
 
 	class Serial::ScopedWriteLock {
 	public:
-		ScopedWriteLock(SerialImpl *pimpl) : pimpl_(pimpl) {
+        explicit ScopedWriteLock(Serial::SerialImpl *pimpl) : pimpl_(pimpl) {
 			this->pimpl_->writeLock();
 		}
 		~ScopedWriteLock() {
@@ -53,7 +53,7 @@ namespace serial {
 		// Disable copy constructors
 		ScopedWriteLock(const ScopedWriteLock&);
 		const ScopedWriteLock& operator=(ScopedWriteLock);
-		SerialImpl *pimpl_;
+        Serial::SerialImpl *pimpl_;
 	};
 
 	Serial::Serial (const string &port, uint32_t baudrate, serial::Timeout timeout,

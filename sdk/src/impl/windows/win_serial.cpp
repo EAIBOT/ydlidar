@@ -315,7 +315,7 @@ namespace serial {
         DWORD serialBitsPerByte = dcb.ByteSize + 1;
                 serialBitsPerByte +=(dcb.Parity == NOPARITY)?0:1;
                 serialBitsPerByte +=(dcb.StopBits==ONESTOPBIT)?1:2;
-				byte_time_ns_ = bit_time_ns*msPerByte;
+
 
                 DWORD msPerByte =(dcb.BaudRate >0)?((1000 * serialBitsPerByte + dcb.BaudRate - 1)/dcb.BaudRate):1;
                 currentCommTimeouts.ReadIntervalTimeout = msPerByte; //最小化串联端口数据包连接读取的机会// Minimize chance of concatenating of separate serial port packets on read
@@ -323,6 +323,8 @@ namespace serial {
                 currentCommTimeouts.ReadTotalTimeoutConstant = 2000; //总读取超时（读取循环的周期）// Total read timeout (period of read loop)
                 currentCommTimeouts.WriteTotalTimeoutConstant = 2000; //写超时的常量部分// Const part of write timeout
                 currentCommTimeouts.WriteTotalTimeoutMultiplier = msPerByte; //写入超时的变量部分（每个字节）// Variable part of write timeout (per byte)
+
+		byte_time_ns_ = bit_time_ns*msPerByte;
 
            if (!::SetCommTimeouts(fd_, &currentCommTimeouts)) {
                return false;
