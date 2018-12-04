@@ -30,7 +30,6 @@ CYdLidar::CYdLidar() : lidarPtr(nullptr)
     isScanning          = false;
     node_counts         = 720;
     each_angle          = 0.5;
-    print_error_info    = 0;
     m_FrequencyOffset   = 0.4;
     m_isMultipleRate    = false;
     m_IgnoreArray.clear();
@@ -256,17 +255,15 @@ bool CYdLidar::getDeviceHealth() const {
         } else {
             ydlidar::console.error("YDLidar running correctly ! The health status is bad");
         }
-        if (healthinfo.status == 2) {
-            if (print_error_info == 3)
-                ydlidar::console.error("Error, Yd Lidar internal error detected. Please reboot the device to retry.");
+        if (healthinfo.status == 2) { 
+            ydlidar::console.error("Error, Yd Lidar internal error detected. Please reboot the device to retry.");
             return false;
         } else {  
             return true;
         }
 
-    } else {
-        if (print_error_info == 3)
-            ydlidar::console.error( "Error, cannot retrieve Yd Lidar health code: %x", op_result);
+    } else { 
+        ydlidar::console.error( "Error, cannot retrieve Yd Lidar health code: %x", op_result);
         return false;
     }
 
@@ -278,9 +275,8 @@ bool CYdLidar::getDeviceInfo(int &type) {
 
 	device_info devinfo;
     result_t ans = lidarPtr->getDeviceInfo(devinfo);
-    if (!IS_OK(ans)) {
-        if (print_error_info == 3)
-            ydlidar::console.error("get DeviceInfo Error" );
+    if (!IS_OK(ans)) {   
+        ydlidar::console.error("get DeviceInfo Error" );
 		return false;
 	}	 
 	std::string model;
@@ -622,19 +618,22 @@ bool CYdLidar::checkStatus()
             for (it=checkmodel.begin(); it!=checkmodel.end(); ++it) {
                 if(it->second)
                     continue;
-                print_error_info++;
                 lidarPtr->disconnect();
+                delete lidarPtr;
+                lidarPtr = nullptr;
                 m_SerialBaudrate = it->first;
 
-                bool ret = checkCOMMs();
-                if (!ret) {
+                if (!checkCOMMs()) {
                     return false;
+                } else {
+                    break;
                 }
             }
-
+            if(it == checkmodel.end()) {
+                return false;
+            }
         } else {
             ret = true;
-            print_error_info = 0;
             break;
         }
     }

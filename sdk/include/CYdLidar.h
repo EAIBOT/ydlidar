@@ -93,7 +93,6 @@ private:
     bool isScanning;
     int node_counts ;
     double each_angle;
-    int print_error_info;
     bool m_isMultipleRate;
     double m_FrequencyOffset;
 

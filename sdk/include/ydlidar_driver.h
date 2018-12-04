@@ -540,16 +540,6 @@ namespace ydlidar{
     	*/
 		result_t sendData(const uint8_t * data, size_t size);
 
-        /**
-        * @brief 发送掉电保护命令 \n
-        * @return 返回执行结果
-        * @retval RESULT_OK       发送成功
-        * @retval RESULT_FAILE    发送失败
-        * @note只有(G4, G4C, F4PRO)雷达支持掉电保护功能, 别的型号雷达暂不支持
-        */
-        result_t sendHeartBeat();
-
-
 		/**
 		* @brief 关闭数据获取通道 \n
     	*/
