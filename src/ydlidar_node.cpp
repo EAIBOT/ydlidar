@@ -131,8 +131,8 @@ int main(int argc, char * argv[]) {
             scan_msg.angle_min = scan.config.min_angle;
             scan_msg.angle_max = scan.config.max_angle;
             scan_msg.angle_increment = scan.config.ang_increment;
-            scan_msg.scan_time = scan.config.scan_time;
-            scan_msg.time_increment = scan.config.time_increment;
+            scan_msg.scan_time = scan.config.scan_time/1000000000.0;
+            scan_msg.time_increment = scan.config.time_increment/1000000000.0;
             scan_msg.range_min = scan.config.min_range;
             scan_msg.range_max = scan.config.max_range;
             
