@@ -196,7 +196,7 @@ int fhs_lock( const char *filename, int pid )
      */
     int fd,j;
     char lockinfo[12];
-    char file[80], *p;
+    char file[PATH_MAX], *p;
 
     j = strlen( filename );
     p = ( char * ) filename + j;
@@ -366,7 +366,7 @@ int check_lock_status( const char *filename )
 ----------------------------------------------------------*/
 void fhs_unlock( const char *filename, int openpid )
 {
-    char file[80],*p;
+    char file[PATH_MAX],*p;
     int i;
 
     i = strlen( filename );
@@ -397,7 +397,7 @@ void fhs_unlock( const char *filename, int openpid )
 void uucp_unlock( const char *filename, int openpid )
 {
     struct stat buf;
-    char file[80];
+    char file[PATH_MAX];
     /* FIXME */
 
     printf("uucp_unlock( %s );\n", filename );
@@ -642,7 +642,7 @@ int is_device_locked( const char *port_filename )
         LOCKDIR, NULL
     };
     const char *lockprefixes[] = { "LCK..", "lk..", "LK.", NULL };
-    char *p, file[80], pid_buffer[20];
+    char *p, file[PATH_MAX], pid_buffer[20];
     int i = 0, j, k, fd , pid;
     struct stat buf, buf2, lockbuf;
 
