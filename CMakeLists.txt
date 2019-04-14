@@ -45,7 +45,7 @@ install(TARGETS ydlidar_node ydlidar_client
 )
 
 
-install(DIRECTORY launch startup sdk
+install(DIRECTORY launch startup sdk urdf meshes
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
   USE_SOURCE_PERMISSIONS
 )
